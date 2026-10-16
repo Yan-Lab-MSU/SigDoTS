@@ -1,2 +1,2 @@
-# DoTS
-DoTS: Statistical significance testing for spatial domain detection
+# SigDoTS
+SigDoTS: Statistical significance testing for spatial domain detection
