@@ -1,7 +1,7 @@
 # Builds the pkgdown website on every push to main and publishes it to the gh-pages branch,
-# which GitHub Pages serves at https://<owner>.github.io/SigDoTS/ (enable Pages for the
-# repository once: Settings -> Pages -> branch gh-pages). Not yet exercised: it runs once the
-# repository is on GitHub.
+# which GitHub Pages serves at https://yan-lab-msu.github.io/SigDoTS/ once Pages is enabled
+# for the repository (Settings -> Pages -> branch gh-pages), when the repository is public.
+# It can also be started by hand (workflow_dispatch), to rebuild only the site.
 on:
   push:
     branches: [main, master]
@@ -31,7 +31,10 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"hard"'
-          extra-packages: any::pkgdown, any::knitr, any::rmarkdown, local::.
+          # Seurat, SpatialExperiment, scuttle and scran: the own-data tutorial runs its Seurat
+          # and SpatialExperiment examples only when they are installed; without them the page
+          # showed those examples' code but not their output (found 2026-11-02).
+          extra-packages: any::pkgdown, any::knitr, any::rmarkdown, any::Seurat, any::SpatialExperiment, any::scuttle, any::scran, local::.
           needs: website
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)

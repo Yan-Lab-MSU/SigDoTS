@@ -13,7 +13,9 @@ per function: [function index](../reference/index.html).
 # Every help page of the installed package, rendered by R's own converter (tools::Rd2HTML), so
 # the text is exactly that of ?topic in R. The function's name is put before each title, and
 # R's section headings are moved one level down so that the table of contents on the right
-# lists the functions.
+# lists the functions. Every "$" is written as the HTML code for "$": pandoc reads this HTML
+# as Markdown, and two "$" in one paragraph, as in domains(fit)$spot[domains(fit)$domain == k],
+# became a formula with the dollar signs removed (found on the GitHub-built site, 2026-11-02).
 topics <- c("SigDoTS-package" = "The SigDoTS package", sigdots = "sigdots()",
             sigdots_control = "sigdots_control()", sigdots_prepare = "sigdots_prepare()",
             summary.sigdots = "print() and summary()", domains = "domains()",
@@ -34,6 +36,7 @@ for (nm in names(topics)) {
   prefix <- if (nm == "SigDoTS-package") "" else sprintf("<code>%s</code>: ", topics[[nm]])
   h <- sub("<h2 id='[^']*'>", sprintf("<h2 id='%s'>%s", gsub(".", "-", nm, fixed = TRUE), prefix), h)
   h <- gsub("<(/?)h3>", "<\\1h4>", h)
+  h <- gsub("$", "&#36;", h, fixed = TRUE)
   cat(h, "\n\n")
 }
 cat("</div>\n")
