@@ -37,10 +37,8 @@ navbar:
     reference:
       text: Documentation
       menu:
-      - text: Reference manual (all functions on one page)
+      - text: Reference manual
         href: articles/reference-manual.html
-      - text: One page per function
-        href: reference/index.html
       - text: Reference manual (PDF)
         href: SigDoTS-manual.pdf
 

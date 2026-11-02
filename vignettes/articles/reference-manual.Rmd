@@ -6,8 +6,7 @@ This page is the complete documentation of SigDoTS: every function, what it does
 argument with its meaning, its allowed values and its default, followed by what the function
 returns and an example. It is the same text as the help pages in R (`?sigdots`,
 `?sigdots_control`, ...), gathered on one page in the order in which you would use the
-functions. The same manual as a PDF: [SigDoTS-manual.pdf](../SigDoTS-manual.pdf). One page
-per function: [function index](../reference/index.html).
+functions. The same manual as a PDF: [SigDoTS-manual.pdf](../SigDoTS-manual.pdf).
 
 ```{r manual, echo = FALSE, results = "asis"}
 # Every help page of the installed package, rendered by R's own converter (tools::Rd2HTML), so
