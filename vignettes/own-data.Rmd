@@ -48,7 +48,7 @@ dim(counts)
 
 ### A Seurat object
 
-```{r seurat, eval = requireNamespace("Seurat", quietly = TRUE) && requireNamespace("SeuratObject", quietly = TRUE)}
+```{r seurat, eval = requireNamespace("Seurat", quietly = TRUE) && requireNamespace("SeuratObject", quietly = TRUE), message = FALSE}
 library(Seurat)
 # A toy Seurat object: the counts and the spot positions as a FOV. With real data:
 # obj <- Load10X_Spatial("path/to/spaceranger/outs")
@@ -74,7 +74,7 @@ relative to the tissue image (add `ggplot2::scale_y_reverse()`).
 
 ### A SpatialExperiment object
 
-```{r spe, eval = requireNamespace("SpatialExperiment", quietly = TRUE) && requireNamespace("scuttle", quietly = TRUE) && requireNamespace("scran", quietly = TRUE)}
+```{r spe, eval = requireNamespace("SpatialExperiment", quietly = TRUE) && requireNamespace("scuttle", quietly = TRUE) && requireNamespace("scran", quietly = TRUE), message = FALSE, warning = FALSE}
 library(SpatialExperiment)
 library(scuttle)
 library(scran)
@@ -89,6 +89,11 @@ fit
 spe <- add_domains(spe, fit)       # adds colData(spe)$sigdots_domain and $sigdots_candidate_domain
 table(colData(spe)$sigdots_domain, sigdots_example$region)
 ```
+
+Package start-up messages are not shown on this page. With Bioconductor 3.23 (scuttle 1.22,
+scran 1.40), `logNormCounts()`, `modelGeneVar()` and `getTopHVGs()` print warnings that they,
+or functions they use, are deprecated in favour of the newer package scrapper; they still work,
+and any other normalisation and gene selection works as well.
 
 For Visium data `spatialCoords(spe)` holds pixel positions (`pxl_col_in_fullres`,
 `pxl_row_in_fullres`); any unit works. A `SingleCellExperiment` without positions, for
