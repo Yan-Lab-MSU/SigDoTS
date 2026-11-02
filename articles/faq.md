@@ -1,0 +1,272 @@
+# Troubleshooting and FAQ
+
+Every error and warning [`sigdots()`](../reference/sigdots.md) can give,
+what it means, and what to do; followed by the questions users ask most.
+Messages are quoted as the package prints them.
+
+## Errors before anything is computed
+
+SigDoTS checks all inputs first, so these errors appear within a second.
+
+**“`x` has 2000 rows but `coords` has 3639. `x` has 3639 columns, so it
+is probably one row per gene; use t(x) to give one row per spot.”**
+Expression matrices from most tools have genes in rows. SigDoTS wants
+spots in rows:
+
+``` r
+
+fit <- sigdots(t(x), coords, K0 = 10)
+```
+
+**“`x` has 3500 rows (spots) but `coords` has 3639.”** The two matrices
+describe different sets of spots. Usually some spots were filtered from
+one and not the other; subset both to the same spots, in the same order:
+
+``` r
+
+common <- intersect(rownames(x), rownames(coords))
+fit <- sigdots(x[common, ], coords[common, ], K0 = 10)
+```
+
+**“`coords` must have exactly two columns (it has 3).”** Keep the two
+columns that hold the positions, for example `coords[, c("x", "y")]` or
+`coords[, c("pxl_col_in_fullres", "pxl_row_in_fullres")]`.
+
+**“At least half of the spots share their coordinates with another spot
+…”** The coordinates are not the spots’ positions (for example all
+zeros, or a column of indices). Check which columns you passed.
+
+**“Give K0, the number of candidate domains (or `candidate_labels`).”**
+`K0` has no default, because it depends on your tissue. Choose more
+candidate domains than domains you expect; see “How do I choose K0?”
+below.
+
+**“K0 = 5, but `candidate_labels` has 8 distinct labels.”** When you
+give labels, `K0` is their number of distinct values; leave `K0` out.
+
+**“cluster_method =”banksy” needs the Bioconductor package(s) Banksy,
+SingleCellExperiment, SummarizedExperiment. Install with: …“** BANKSY
+and BayesSpace are not installed with SigDoTS. Run the printed
+`BiocManager::install()` command once, then rerun.
+
+**“spatial_method =”exact” would need about 42.9 GiB of memory at a test
+on 32,000 spots, more than max_exact_memory_gib = 16. Use spatial_method
+= “vecchia”, or … raise it …“** The exact spatial computation stores an
+n x n matrix for a part of the tree with n spots. Use the default
+`spatial_method = "vecchia"`, or, on a machine with enough memory,
+`control = sigdots_control(max_exact_memory_gib = 64)`.
+
+## Warnings at the end of a run
+
+The run completed; the warning tells you about parts of the result that
+need attention. `summary(fit)` shows the parts concerned with their node
+numbers.
+
+**“The spatial parameters could not be estimated at 2 part(s) of the
+tree (too few spots), so these parts were not tested and their spots
+have no domain: node 7 (48 spots, candidate domains 3,4); node 8 (48
+spots, candidate domains 1,2). A smaller K0 makes the parts larger; see
+summary() and vignette(”faq”).”** To estimate the spatial correlation at
+a part of the tree, SigDoTS uses pairs of spots that belong to the same
+candidate domain, sorted by distance. A part with few spots does not
+have enough such pairs (on a regular grid, about 80 spots are needed).
+SigDoTS leaves that part untested, still tests the rest of the tree,
+marks the part `[!] NOT TESTED` in the printed tree and grey in
+`plot(fit)`, and gives its spots `NA` in `domains(fit)`.
+
+What to do: use fewer candidate domains (a smaller `K0`), so that each
+part of the tree is larger; or, if the untested part is small and you
+accept it as it is, treat its spots as one domain yourself. Do not
+interpret an untested part as “not significant”: it was not tested.
+
+**“At 1 test(s) the estimated spatial range ell is at the upper end of
+its allowed range (40): node(s) 8. Rerun with a wider range, for example
+control = sigdots_control(ell_range = c(0.3, 80)); see
+vignette(”faq”).”** `ell` says how far the spatial correlation of the
+noise reaches, in units of the distance between neighbouring spots.
+SigDoTS searches it between 0.3 and 40 by default. When the estimate
+sits at 40, the true value may be larger, and a single-domain model with
+too short a range makes splits look clearer than they are. Rerun with a
+wider range:
+
+``` r
+
+fit <- sigdots(x, coords, K0 = 10, control = sigdots_control(ell_range = c(0.3, 80)))
+```
+
+If the estimate moves to the new upper end again, the tissue has
+correlation over very long distances relative to the spot spacing; look
+at `plot(fit, type = "correlogram", test = 8)`.
+
+**summary() says “Spots in separate pieces on the 6-nearest-neighbour
+graph (joined by their closest spots for the tree)”, for example “\[11\]
+308 spots: pieces of 242, 49, 14 and 3 single spots”** This no longer
+stops a run. When the spots of a part of the tree fall into separate
+pieces on the 6-nearest-neighbour graph (a layer cut by a fold; a few
+spots whose neighbours all belong to other candidate domains), the
+pieces are joined by their closest spots before the tree is built, so
+that every grouping of a simulated dataset has a connected tree.
+[`summary()`](https://rdrr.io/r/base/summary.html) lists the parts where
+this happened, with the piece sizes. If a detached piece is a different
+piece of tissue rather than a fragment of the same layer, analyse it
+separately (subset its spots).
+
+**“At 1 part(s) of the tree the test would need more than B_cap = 5000
+simulated datasets: node(s) 23. These parts were not tested and are
+reported as domains. To test them, raise B_cap in sigdots_control().”**
+A test on m of the n spots uses the level `alpha * (m - 1) / (n - 1)`;
+for a small part of a very large sample this is tiny, and reaching it
+needs more than `B_cap` simulated datasets. Raise `B_cap`
+(`sigdots_control(B_cap = 20000)`), at the cost of time, or accept that
+part as a domain.
+
+## Questions
+
+### How do I choose K0?
+
+`K0` is the number of candidate domains. SigDoTS merges candidate
+domains into domains; it never splits an candidate domain. So each
+candidate domain must lie inside one true domain, and `K0` must be
+larger than the number of domains you expect. Twice the expected number
+is a reasonable start. If `K0` is much too large, the lower parts of the
+tree become too small to test (see the first warning above); if it is
+too small, two true domains may share an candidate domain and can never
+be separated. Running SigDoTS with two or three values of `K0` and
+comparing `plot(fit)` is a good check: domains that are real appear for
+every `K0`.
+
+### I have a Seurat object / a SpatialExperiment / a Scanpy file. What do I pass?
+
+Pass the object itself: `sigdots(obj, K0 = 10)` for a Seurat object
+(normalised with `NormalizeData()`, variable genes set with
+`FindVariableFeatures()`), `sigdots(spe, K0 = 10, genes = hvg)` for a
+SpatialExperiment with a `logcounts` assay. A Scanpy `.h5ad` file can be
+read into a SingleCellExperiment with `zellkonverter::readH5AD()`; then
+give the positions:
+`sigdots(sce, coords = reducedDim(sce, "spatial"), K0 = 10)`.
+`add_domains(obj, fit)` writes the domains back into the object. Details
+and runnable examples:
+[`vignette("own-data")`](../articles/own-data.md).
+
+### Can I use labels from Seurat, BANKSY or another tool?
+
+Yes: `sigdots(x, coords, candidate_labels = labels)`, or, for an object,
+the name of the metadata column,
+`sigdots(obj, candidate_labels = "seurat_clusters")`. The tree is built
+from your labels. The simulated datasets, however, are grouped with
+`cluster_method` (k-means by default), because SigDoTS must cluster each
+simulated dataset the same way every time. The test is therefore
+calibrated for labels made the way `cluster_method` makes them; when
+your labels come from a very different method, read the p-values with
+this in mind. If your tool is BANKSY or BayesSpace, prefer
+`cluster_method = "banksy"` or `"bayesspace"`, which applies the same
+method to the data and to the simulated datasets.
+
+### Why are the p-values so coarse (0.05, 0.033, 0.0909, 1)?
+
+Each test uses only as many simulated datasets as needed to decide: 10
+by default, raised to `ceiling(1 / level) - 1` (19 at the first test
+with `alpha = 0.05`) and stopped as soon as the decision cannot change.
+With B datasets the p-value is a multiple of 1/(B + 1). The decision
+(split or not) is what the test establishes; the p-value is reported for
+completeness. If you want finer p-values, raise `B_min` and `B_max`, for
+example `B_min = 100, B_max = 100`, which costs about ten times the run
+time at every test. More simulated datasets also give a true split that
+is only moderately clear a better chance of being kept; the error
+guarantee holds either way.
+
+### Can the tests of a large tree run faster?
+
+The lower tests of a large tree have small levels, and a Monte Carlo
+test needs about 1 / level simulated datasets to keep a split (about 200
+for a part with a tenth of the spots).
+`pvalue_method = "normal_adaptive"` computes the p-value from a normal
+distribution fitted to the simulated statistics instead, with 10
+simulated datasets per test, or 50 when the result is near the level
+(`normal_n_initial`, `normal_n_refine`). It relies on the simulated
+statistics being roughly normal; the Monte Carlo p-value, the default,
+makes no such assumption.
+
+### How many genes should I give, and how should they be normalised?
+
+Use normalised, log-transformed expression (for example log(1 + counts
+per 10,000)) and the most variable genes, typically 1,000 to 3,000. All
+genes you give enter the split statistic with equal weight per unit of
+variance; genes with larger variance count more. If you want every gene
+to count equally, scale the columns of `x` to unit variance first. Do
+not give raw counts.
+
+### My tissue may be one domain. What does SigDoTS report then?
+
+The first test, on all spots, is not significant; SigDoTS reports one
+domain, and the tree shows `no split` at the top with your `K0`
+candidate domains under it.
+
+### Will I get the same result again?
+
+Yes, with the same data, arguments and `seed` (default 1), on any number
+of cores. SigDoTS also puts the random-number state of your session back
+when it returns. Changing `K0`, the normalisation or the gene set
+changes the candidate domains and therefore the tree.
+
+### How many cores should I use?
+
+`n_cores` runs the simulated datasets of one test in parallel; the gain
+is largest at the first test, which uses 19 datasets at `alpha = 0.05`.
+On Linux and macOS use as many cores as you have, up to about 20. On
+Windows SigDoTS runs on one core and says so.
+
+### How long will it take, and how much memory?
+
+See the table in the README (or
+[`vignette("own-data")`](../articles/own-data.md)). For orientation: 900
+spots take about 20 seconds on one core; 2,500 spots about 4 minutes on
+10 cores; 10,000 spots about 20 minutes on 10 cores with the exact
+computation. Memory grows with the square of the number of spots in the
+largest tested part; for samples above about 20,000 spots use the
+default Vecchia approximation and a computer with enough memory (the
+spatial-parameter estimation alone used 7 GiB at 20,000 spots and 29 GiB
+at 40,000).
+
+### What does `=> DOMAIN 2` mean in the printed tree?
+
+That part of the tree was not split further and is the second final
+domain. Domains are numbered from left to right in the tree;
+`domains(fit)` gives the number of each spot.
+
+### What do `eta` and `ell` mean?
+
+They describe the spatial correlation of the noise that the
+single-domain model assumes, estimated anew at every test from pairs of
+spots in the same candidate domain: `eta` is the share of the noise
+variance that is correlated between spots (0 = none, 1 = all), `ell` is
+how far that correlation reaches, in spot spacings (Matérn 3/2
+correlation). They are nuisance parameters: SigDoTS estimates them so
+that the simulated data are as spatially smooth as the real data, which
+is what makes the test fair; they are not findings about the tissue.
+
+### On Linux, `library(SigDoTS)` fails with “libglpk.so.40: cannot open shared object file”
+
+The igraph package, which SigDoTS uses to build the tree, needs the GLPK
+library of the operating system, and minimal Linux installations (for
+example small Docker images) do not have it. Install the system
+libraries igraph uses, then reinstall igraph:
+
+``` bash
+sudo apt-get install libglpk-dev libgmp-dev libxml2-dev     # Ubuntu, Debian
+sudo dnf install glpk-devel gmp-devel libxml2-devel          # Fedora
+```
+
+``` r
+
+install.packages("igraph")
+```
+
+On Windows and macOS the igraph binaries from CRAN contain the library
+and nothing extra is needed.
+
+### Where do I report a problem?
+
+Once the repository is public, open an issue on GitHub with the output
+of [`sessionInfo()`](https://rdrr.io/r/utils/sessionInfo.html), the
+exact call, and the full message. Until then, write to the maintainer.
