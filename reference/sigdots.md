@@ -48,8 +48,11 @@ sigdots(
   - An **expression matrix**: one row per spot (or cell), one column per
     gene, with the spot identifiers as row names. The values must
     already be normalised, for example log(1 + 10,000 x count / total
-    count of the spot), as `Seurat::NormalizeData()` or
-    `scuttle::logNormCounts()` give; do not give raw counts
+    count of the spot), as
+    [`Seurat::NormalizeData()`](https://satijalab.org/seurat/reference/NormalizeData.html)
+    or
+    [`scuttle::logNormCounts()`](https://rdrr.io/pkg/scuttle/man/logNormCounts.html)
+    give; do not give raw counts
     ([`sigdots_prepare()`](sigdots_prepare.md) makes the matrix from raw
     counts). Use the most variable genes, typically 1,000 to 3,000. A
     matrix, a data frame or a sparse `Matrix` is accepted. `coords` is
@@ -58,9 +61,11 @@ sigdots(
   - A **Seurat** object. The expression comes from the normalised
     `"data"` layer of the assay given by `assay` (by default the
     object's default assay), restricted to the genes in `genes` (by
-    default the variable genes set by `Seurat::FindVariableFeatures()`).
+    default the variable genes set by
+    [`Seurat::FindVariableFeatures()`](https://satijalab.org/seurat/reference/FindVariableFeatures.html)).
     The spot positions come from the object's image
-    (`Seurat::GetTissueCoordinates()`) or FOV unless `coords` is given.
+    ([`Seurat::GetTissueCoordinates()`](https://satijalab.github.io/seurat-object/reference/GetTissueCoordinates.html))
+    or FOV unless `coords` is given.
 
   - A **SpatialExperiment** object, or a SingleCellExperiment or
     SummarizedExperiment with `coords` given (for example a Scanpy
@@ -68,7 +73,8 @@ sigdots(
     the `"logcounts"` assay (or the assay given by `assay`), restricted
     to the genes in `genes` (by default all genes when there are at most
     5,000; otherwise `genes` is required). The positions come from
-    `SpatialExperiment::spatialCoords()` unless `coords` is given.
+    [`SpatialExperiment::spatialCoords()`](https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html)
+    unless `coords` is given.
 
   The values are used as they are: genes are not scaled to variance 1,
   so a gene with a larger variance has more weight in the principal
@@ -550,10 +556,10 @@ with figures.
 # about 20 seconds on one core
 fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [13 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [9 s]
 #>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [9 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]
 fit
 #> SigDoTS: 900 spots, 200 genes
 #> Number of domains: 3   (spots per domain: 300, 300, 300)
@@ -612,19 +618,19 @@ plot(fit, type = "tree")
 fit2 <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5,
                 B_min = 50, B_max = 50, n_cores = 2)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [51 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [30 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [34 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [20 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [43 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [18 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [25 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [23 s]
 
 # the normal approximation of the p-value
 fit3 <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5,
                 pvalue_method = "normal_adaptive")
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [10 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [6 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [6 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [6 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [7 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [4 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]
 summary(fit3)
 #> SigDoTS 0.2.5.8
 #> Data:     900 spots x 200 genes

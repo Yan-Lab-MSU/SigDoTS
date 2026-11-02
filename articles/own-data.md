@@ -14,8 +14,8 @@ these forms you have:
 
 | You have | Call | Where the pieces come from |
 |----|----|----|
-| a **Seurat** object (Visium, Xenium, Slide-seq, … loaded with `Load10X_Spatial()` or similar) | `sigdots(obj, K0 = 10)` | the normalised `"data"` layer of the default assay; the variable genes from `FindVariableFeatures()`; the positions from the object’s image or FOV |
-| a **SpatialExperiment** object (Bioconductor: `read10xVisium()`, spatialLIBD, STexampleData, …) | `sigdots(spe, K0 = 10, genes = hvg)` | the `"logcounts"` assay; the genes you name (all genes if there are at most 5,000); `spatialCoords(spe)` |
+| a **Seurat** object (Visium, Xenium, Slide-seq, … loaded with [`Load10X_Spatial()`](https://satijalab.org/seurat/reference/Load10X_Spatial.html) or similar) | `sigdots(obj, K0 = 10)` | the normalised `"data"` layer of the default assay; the variable genes from [`FindVariableFeatures()`](https://satijalab.org/seurat/reference/FindVariableFeatures.html); the positions from the object’s image or FOV |
+| a **SpatialExperiment** object (Bioconductor: [`read10xVisium()`](https://rdrr.io/pkg/SpatialExperiment/man/read10xVisium.html), spatialLIBD, STexampleData, …) | `sigdots(spe, K0 = 10, genes = hvg)` | the `"logcounts"` assay; the genes you name (all genes if there are at most 5,000); `spatialCoords(spe)` |
 | a **SingleCellExperiment** without positions, or an AnnData file read with `zellkonverter::readH5AD()` | `sigdots(sce, coords = xy, K0 = 10)` | the `"logcounts"` assay; `coords` given by you |
 | a **counts matrix** (genes x spots) and a coordinate table | `sigdots(sigdots_prepare(counts), xy, K0 = 10)` | [`sigdots_prepare()`](../reference/sigdots_prepare.md) log-normalises and keeps the 2,000 most variable genes |
 | an **expression matrix** you normalised yourself | `sigdots(x, xy, K0 = 10)` | `x`: one row per spot, one column per gene; `xy`: one row per spot, two columns, same order |
@@ -47,6 +47,21 @@ dim(counts)
 ``` r
 
 library(Seurat)
+#> Loading required package: SeuratObject
+#> Loading required package: sp
+#> 'SeuratObject' was built under R 4.6.0 but the current version is
+#> 4.6.2; it is recomended that you reinstall 'SeuratObject' as the ABI
+#> for R may have changed
+#> 'SeuratObject' was built with package 'Matrix' 1.7.5 but the current
+#> version is 1.7.6; it is recomended that you reinstall 'SeuratObject' as
+#> the ABI for 'Matrix' may have changed
+#> 
+#> Attaching package: 'SeuratObject'
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, t
+#> v5.6 adds significant improvements in speed and efficiency, particularly for large datasets.
+#> For more information, see https://satijalab.org/seurat/articles/announcements.
 # A toy Seurat object: the counts and the spot positions as a FOV. With real data:
 # obj <- Load10X_Spatial("path/to/spaceranger/outs")
 obj <- CreateSeuratObject(counts = counts, assay = "Spatial")
@@ -58,8 +73,28 @@ obj <- FindVariableFeatures(obj, nfeatures = 150, verbose = FALSE)   # the genes
 
 fit <- sigdots(obj, K0 = 5, verbose = FALSE)
 fit
+#> SigDoTS: 900 spots, 150 genes
+#> Number of domains: 3   (spots per domain: 300, 295, 305)
+#> 
+#> Split tree ([node] spots, candidate domains: decision):
+#> [9] 900 spots, candidate domains 1,2,3,4,5: split
+#> ├── [6] 300 spots, candidate domains 2,3: no split   => DOMAIN 1
+#> │   ├── candidate domain 2  109 spots
+#> │   └── candidate domain 3  191 spots
+#> └── [8] 600 spots, candidate domains 1,4,5: split
+#>     ├── [1] 295 spots, candidate domain 1   => DOMAIN 2
+#>     └── [7] 305 spots, candidate domains 4,5: no split   => DOMAIN 3
+#>         ├── candidate domain 4  154 spots
+#>         └── candidate domain 5  151 spots
+#> 
+#> Use summary() for the tests.
 obj <- add_domains(obj, fit)       # adds obj$sigdots_domain and obj$sigdots_candidate_domain
 table(obj$sigdots_domain, sigdots_example$region)
+#>    
+#>       1   2   3
+#>   1   0   0 300
+#>   2 295   0   0
+#>   3   5 300   0
 ```
 
 With a Seurat object you can also name the assay (`assay = "SCT"`),
@@ -76,18 +111,136 @@ appear flipped vertically relative to the tissue image (add
 ``` r
 
 library(SpatialExperiment)
+#> Loading required package: SingleCellExperiment
+#> Loading required package: SummarizedExperiment
+#> Loading required package: MatrixGenerics
+#> Loading required package: matrixStats
+#> 
+#> Attaching package: 'MatrixGenerics'
+#> The following objects are masked from 'package:matrixStats':
+#> 
+#>     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+#>     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+#>     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+#>     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+#>     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+#>     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+#>     colWeightedMeans, colWeightedMedians, colWeightedSds,
+#>     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+#>     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+#>     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+#>     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+#>     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+#>     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+#>     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+#>     rowWeightedSds, rowWeightedVars
+#> Loading required package: GenomicRanges
+#> Loading required package: stats4
+#> Loading required package: BiocGenerics
+#> Loading required package: generics
+#> 
+#> Attaching package: 'generics'
+#> The following objects are masked from 'package:base':
+#> 
+#>     as.difftime, as.factor, as.ordered, intersect, is.element, setdiff,
+#>     setequal, union
+#> 
+#> Attaching package: 'BiocGenerics'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     IQR, mad, sd, var, xtabs
+#> The following objects are masked from 'package:base':
+#> 
+#>     anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+#>     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+#>     get, grep, grepl, is.unsorted, lapply, Map, mapply, match, mget,
+#>     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+#>     rbind, Reduce, rownames, sapply, saveRDS, table, tapply, unique,
+#>     unsplit, which.max, which.min
+#> Loading required package: S4Vectors
+#> 
+#> Attaching package: 'S4Vectors'
+#> The following object is masked from 'package:utils':
+#> 
+#>     findMatches
+#> The following objects are masked from 'package:base':
+#> 
+#>     expand.grid, I, unname
+#> Loading required package: IRanges
+#> 
+#> Attaching package: 'IRanges'
+#> The following object is masked from 'package:sp':
+#> 
+#>     %over%
+#> Loading required package: Seqinfo
+#> Loading required package: Biobase
+#> Welcome to Bioconductor
+#> 
+#>     Vignettes contain introductory material; view with
+#>     'browseVignettes()'. To cite Bioconductor, see
+#>     'citation("Biobase")', and for packages 'citation("pkgname")'.
+#> 
+#> Attaching package: 'Biobase'
+#> The following object is masked from 'package:MatrixGenerics':
+#> 
+#>     rowMedians
+#> The following objects are masked from 'package:matrixStats':
+#> 
+#>     anyMissing, rowMedians
+#> 
+#> Attaching package: 'SummarizedExperiment'
+#> The following object is masked from 'package:Seurat':
+#> 
+#>     Assays
+#> The following object is masked from 'package:SeuratObject':
+#> 
+#>     Assays
 library(scuttle)
 library(scran)
 # A toy SpatialExperiment: with real data, spe <- read10xVisium("path/to/spaceranger/outs")
 spe <- SpatialExperiment(assays = list(counts = counts), spatialCoords = sigdots_example$coords)
 
 spe <- logNormCounts(spe)                                        # the "logcounts" assay SigDoTS uses
+#> Warning in .library_size_factors(assay(x, assay.type), ...): 'librarySizeFactors' is deprecated.
+#> Use 'scrapper::centerSizeFactors' instead.
+#> See help("Deprecated")
+#> Warning in .local(x, ...): 'normalizeCounts' is deprecated.
+#> Use 'scrapper::normalizeCounts' instead.
+#> See help("Deprecated")
 hvg <- getTopHVGs(modelGeneVar(spe), n = 150)                    # the genes SigDoTS uses
+#> Warning in getTopHVGs(modelGeneVar(spe), n = 150): 'getTopHVGs' is deprecated.
+#> Use 'scrapper::chooseHighlyVariableGenes' instead.
+#> See help("Deprecated")
+#> Warning in fitTrendVar(fm, fv, ...): 'fitTrendVar' is deprecated.
+#> Use 'scrapper::fitVarianceTrend' instead.
+#> See help("Deprecated")
+#> Warning in combineBlocks(collected, method = method, equiweight = equiweight, : 'combineBlocks' is deprecated.
+#> See help("Deprecated")
 
 fit <- sigdots(spe, K0 = 5, genes = hvg, verbose = FALSE)
 fit
+#> SigDoTS: 900 spots, 94 genes
+#> Number of domains: 3   (spots per domain: 300, 299, 301)
+#> 
+#> Split tree ([node] spots, candidate domains: decision):
+#> [9] 900 spots, candidate domains 1,2,3,4,5: split
+#> ├── [5] 300 spots, candidate domain 5   => DOMAIN 1
+#> └── [8] 600 spots, candidate domains 1,2,3,4: split
+#>     ├── [6] 299 spots, candidate domains 3,4: no split   => DOMAIN 2
+#>     │   ├── candidate domain 3  160 spots
+#>     │   └── candidate domain 4  139 spots
+#>     └── [7] 301 spots, candidate domains 1,2: no split   => DOMAIN 3
+#>         ├── candidate domain 1  144 spots
+#>         └── candidate domain 2  157 spots
+#> 
+#> Use summary() for the tests.
 spe <- add_domains(spe, fit)       # adds colData(spe)$sigdots_domain and $sigdots_candidate_domain
 table(colData(spe)$sigdots_domain, sigdots_example$region)
+#>    
+#>       1   2   3
+#>   1   0   0 300
+#>   2 299   0   0
+#>   3   1 300   0
 ```
 
 For Visium data `spatialCoords(spe)` holds pixel positions

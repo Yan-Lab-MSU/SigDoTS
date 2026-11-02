@@ -48,12 +48,10 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-documentation">
-<li><a class="dropdown-item" href="../articles/reference-manual.html">Reference manual (all functions on one page)</a></li>
-    <li><a class="dropdown-item" href="../reference/index.html">One page per function</a></li>
+<li><a class="dropdown-item" href="../articles/reference-manual.html">Reference manual</a></li>
     <li><a class="dropdown-item" href="../SigDoTS-manual.pdf">Reference manual (PDF)</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav"></ul>
 </div>
@@ -81,8 +79,7 @@ what it does, and every argument with its meaning, its allowed values
 and its default, followed by what the function returns and an example.
 It is the same text as the help pages in R (<code><a href="../reference/sigdots.html">?sigdots</a></code>,
 <code><a href="../reference/sigdots_control.html">?sigdots_control</a></code>, …), gathered on one page in the order in
-which you would use the functions. The same manual as a PDF: <a href="../SigDoTS-manual.pdf">SigDoTS-manual.pdf</a>. One page per
-function: <a href="../reference/index.html">function index</a>.</p>
+which you would use the functions. The same manual as a PDF: <a href="../SigDoTS-manual.pdf">SigDoTS-manual.pdf</a>.</p>
 <div class="ref-manual">
 <h2 id="SigDoTS-package">
 SigDoTS: significance testing for spatial domains
@@ -289,8 +286,8 @@ The data, in one of three forms.
 An <strong>expression matrix</strong>: one row per spot (or cell), one
 column per gene, with the spot identifiers as row names. The values must
 already be normalised, for example log(1 + 10,000 x count / total count
-of the spot), as <code>Seurat::NormalizeData()</code> or
-<code>scuttle::logNormCounts()</code> give; do not give raw counts
+of the spot), as <code><a href="https://satijalab.org/seurat/reference/NormalizeData.html" class="external-link">Seurat::NormalizeData()</a></code> or
+<code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">scuttle::logNormCounts()</a></code> give; do not give raw counts
 (<code><a href="../reference/sigdots_prepare.html">sigdots_prepare()</a></code> makes the matrix from raw counts). Use
 the most variable genes, typically 1,000 to 3,000. A matrix, a data
 frame or a sparse <code>Matrix</code> is accepted. <code>coords</code>
@@ -303,8 +300,8 @@ A <strong>Seurat</strong> object. The expression comes from the
 normalised <code>“data”</code> layer of the assay given by
 <code>assay</code> (by default the object’s default assay), restricted
 to the genes in <code>genes</code> (by default the variable genes set by
-<code>Seurat::FindVariableFeatures()</code>). The spot positions come
-from the object’s image (<code>Seurat::GetTissueCoordinates()</code>) or
+<code><a href="https://satijalab.org/seurat/reference/FindVariableFeatures.html" class="external-link">Seurat::FindVariableFeatures()</a></code>). The spot positions come
+from the object’s image (<code><a href="https://satijalab.github.io/seurat-object/reference/GetTissueCoordinates.html" class="external-link">Seurat::GetTissueCoordinates()</a></code>) or
 FOV unless <code>coords</code> is given.
 </p>
 </li>
@@ -317,7 +314,7 @@ The expression comes from the <code>“logcounts”</code> assay (or the
 assay given by <code>assay</code>), restricted to the genes in
 <code>genes</code> (by default all genes when there are at most 5,000;
 otherwise <code>genes</code> is required). The positions come from
-<code>SpatialExperiment::spatialCoords()</code> unless
+<code><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">SpatialExperiment::spatialCoords()</a></code> unless
 <code>coords</code> is given.
 </p>
 </li>
@@ -1457,7 +1454,7 @@ count and multiplied by <code>scale_factor</code>.
 </li>
 <li>
 <p>
-Log transform: log(1 + value), as <code>Seurat::NormalizeData()</code>
+Log transform: log(1 + value), as <code><a href="https://satijalab.org/seurat/reference/NormalizeData.html" class="external-link">Seurat::NormalizeData()</a></code>
 does by default.
 </p>
 </li>
@@ -1772,9 +1769,8 @@ Details
 <p>
 The domains are numbered by their position in the split tree, from left
 to right as <code>print(fit)</code> draws it, not by size. The spots of
-domain <code>k</code> are
-<code>domains(fit)<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>p</mi><mi>o</mi><mi>t</mi><mo stretchy="false" form="prefix">[</mo><mi>d</mi><mi>o</mi><mi>m</mi><mi>a</mi><mi>i</mi><mi>n</mi><mi>s</mi><mo stretchy="false" form="prefix">(</mo><mi>f</mi><mi>i</mi><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">spot[domains(fit)</annotation></semantics></math>domain
-== k]</code>.
+domain <code>k</code> are <code>domains(fit)$spot[domains(fit)$domain ==
+k]</code>.
 </p>
 <h4>
 Value
@@ -1915,11 +1911,11 @@ Examples
 </h4>
 <pre><code class="language-R"><span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"SpatialExperiment"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu">SpatialExperiment</span><span class="fu">::</span><span class="fu">SpatialExperiment</span><span class="op">(</span></span>
+<span>  <span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu">SpatialExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment.html" class="external-link">SpatialExperiment</a></span><span class="op">(</span></span>
 <span>    assays <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logcounts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>, spatialCoords <span class="op">=</span> <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span><span class="op">)</span></span>
 <span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigdots.html">sigdots</a></span><span class="op">(</span><span class="va">spe</span>, K0 <span class="op">=</span> <span class="fl">5</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span>  <span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_domains.html">add_domains</a></span><span class="op">(</span><span class="va">spe</span>, <span class="va">fit</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu">colData</span><span class="op">(</span><span class="va">spe</span><span class="op">)</span><span class="op">$</span><span class="va">sigdots_domain</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">spe</span><span class="op">)</span><span class="op">$</span><span class="va">sigdots_domain</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span></code></pre>
 <h2 id="plot-sigdots">
@@ -2059,7 +2055,14 @@ upside down compared with the tissue image; add
 <code><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">ggplot2::scale_y_reverse()</a></code> to turn it. Domains are coloured
 in the order of their numbers with a fixed palette of eight colours
 (more domains use <code><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">grDevices::hcl.colors()</a></code>); the boundaries
-are drawn between neighbouring spots of different domains.
+are drawn between neighbouring spots of different domains. Each domain’s
+number is written inside the domain, not on a boundary: for every spot
+of the domain, the distance to the nearest spot of another domain (or
+untested spot) or to the edge of the tissue is measured, and among the
+spots where it is at least three quarters of its largest value, the
+number goes to the one nearest the domain’s mean position. A domain in
+several separate pieces is numbered once. The candidate map numbers its
+candidate domains in the same way.
 </p>
 <p>
 In the correlogram, points close to the line mean that the single-domain
@@ -2153,9 +2156,9 @@ SigDoTS does not use it; it is there to compare with the result.
 Details
 </h4>
 <p>
-<code>sigdots(sigdots_example<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>,</mo><mi>s</mi><mi>i</mi><mi>g</mi><mi>d</mi><mi>o</mi><mi>t</mi><msub><mi>s</mi><mi>e</mi></msub><mi>x</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi></mrow><annotation encoding="application/x-tex">x, sigdots_example</annotation></semantics></math>coords,
-K0 = 5)</code> runs in about 20 seconds on one core and recovers the
-three domains; <code>vignette(“SigDoTS”)</code> walks through it.
+<code>sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)</code>
+runs in about 20 seconds on one core and recovers the three domains;
+<code>vignette(“SigDoTS”)</code> walks through it.
 </p>
 <h4>
 Source

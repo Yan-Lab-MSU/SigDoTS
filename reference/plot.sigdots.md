@@ -88,7 +88,13 @@ to turn it. Domains are coloured in the order of their numbers with a
 fixed palette of eight colours (more domains use
 [`grDevices::hcl.colors()`](https://rdrr.io/r/grDevices/palettes.html));
 the boundaries are drawn between neighbouring spots of different
-domains.
+domains. Each domain's number is written inside the domain, not on a
+boundary: for every spot of the domain, the distance to the nearest spot
+of another domain (or untested spot) or to the edge of the tissue is
+measured, and among the spots where it is at least three quarters of its
+largest value, the number goes to the one nearest the domain's mean
+position. A domain in several separate pieces is numbered once. The
+candidate map numbers its candidate domains in the same way.
 
 In the correlogram, points close to the line mean that the single-domain
 model describes the spatial correlation of the data at that test; points

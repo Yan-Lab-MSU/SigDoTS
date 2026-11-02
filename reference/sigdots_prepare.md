@@ -43,8 +43,9 @@ Three steps:
 1.  Normalisation: the counts of each spot are divided by the spot's
     total count and multiplied by `scale_factor`.
 
-2.  Log transform: log(1 + value), as `Seurat::NormalizeData()` does by
-    default.
+2.  Log transform: log(1 + value), as
+    [`Seurat::NormalizeData()`](https://satijalab.org/seurat/reference/NormalizeData.html)
+    does by default.
 
 3.  Gene selection: the variance of every gene's log-normalised values
     across the spots is computed, and the `n_genes` genes with the

@@ -61,5 +61,8 @@ if (requireNamespace("SpatialExperiment", quietly = TRUE)) {
   spe <- add_domains(spe, fit)
   table(SummarizedExperiment::colData(spe)$sigdots_domain)
 }
+#> 
+#>   1   2   3 
+#> 300 300 300 
 # }
 ```

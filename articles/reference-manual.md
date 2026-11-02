@@ -6,8 +6,7 @@ default, followed by what the function returns and an example. It is the
 same text as the help pages in R ([`?sigdots`](../reference/sigdots.md),
 [`?sigdots_control`](../reference/sigdots_control.md), …), gathered on
 one page in the order in which you would use the functions. The same
-manual as a PDF: [SigDoTS-manual.pdf](../SigDoTS-manual.pdf). One page
-per function: [function index](../reference/index.md).
+manual as a PDF: [SigDoTS-manual.pdf](../SigDoTS-manual.pdf).
 
 ## SigDoTS: significance testing for spatial domains
 
@@ -534,8 +533,9 @@ Three steps:
 1.  Normalisation: the counts of each spot are divided by the spot’s
     total count and multiplied by `scale_factor`.
 
-2.  Log transform: log(1 + value), as `Seurat::NormalizeData()` does by
-    default.
+2.  Log transform: log(1 + value), as
+    [`Seurat::NormalizeData()`](https://satijalab.org/seurat/reference/NormalizeData.html)
+    does by default.
 
 3.  Gene selection: the variance of every gene’s log-normalised values
     across the spots is computed, and the `n_genes` genes with the
@@ -745,7 +745,7 @@ domains(fit)
 
 The domains are numbered by their position in the split tree, from left
 to right as `print(fit)` draws it, not by size. The spots of domain `k`
-are `domains(fit)`$`spot[domains(fit)`$`domain == k]`.
+are `domains(fit)$spot[domains(fit)$domain == k]`.
 
 #### Value
 
@@ -877,7 +877,13 @@ to turn it. Domains are coloured in the order of their numbers with a
 fixed palette of eight colours (more domains use
 [`grDevices::hcl.colors()`](https://rdrr.io/r/grDevices/palettes.html));
 the boundaries are drawn between neighbouring spots of different
-domains.
+domains. Each domain’s number is written inside the domain, not on a
+boundary: for every spot of the domain, the distance to the nearest spot
+of another domain (or untested spot) or to the edge of the tissue is
+measured, and among the spots where it is at least three quarters of its
+largest value, the number goes to the one nearest the domain’s mean
+position. A domain in several separate pieces is numbered once. The
+candidate map numbers its candidate domains in the same way.
 
 In the correlogram, points close to the line mean that the single-domain
 model describes the spatial correlation of the data at that test; points
@@ -945,7 +951,7 @@ A list with three elements:
 
 #### Details
 
-`sigdots(sigdots_example`$`x, sigdots_example`$`coords, K0 = 5)` runs in
+`sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)` runs in
 about 20 seconds on one core and recovers the three domains;
 `vignette(“SigDoTS”)` walks through it.
 

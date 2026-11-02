@@ -48,12 +48,10 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-documentation">
-<li><a class="dropdown-item" href="../articles/reference-manual.html">Reference manual (all functions on one page)</a></li>
-    <li><a class="dropdown-item" href="../reference/index.html">One page per function</a></li>
+<li><a class="dropdown-item" href="../articles/reference-manual.html">Reference manual</a></li>
     <li><a class="dropdown-item" href="../SigDoTS-manual.pdf">Reference manual (PDF)</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav"></ul>
 </div>
@@ -101,15 +99,15 @@ have:</p>
 <tbody>
 <tr class="odd">
 <td>a <strong>Seurat</strong> object (Visium, Xenium, Slide-seq, …
-loaded with <code>Load10X_Spatial()</code> or similar)</td>
+loaded with <code><a href="https://satijalab.org/seurat/reference/Load10X_Spatial.html" class="external-link">Load10X_Spatial()</a></code> or similar)</td>
 <td><code>sigdots(obj, K0 = 10)</code></td>
 <td>the normalised <code>"data"</code> layer of the default assay; the
-variable genes from <code>FindVariableFeatures()</code>; the positions
+variable genes from <code><a href="https://satijalab.org/seurat/reference/FindVariableFeatures.html" class="external-link">FindVariableFeatures()</a></code>; the positions
 from the object’s image or FOV</td>
 </tr>
 <tr class="even">
 <td>a <strong>SpatialExperiment</strong> object (Bioconductor:
-<code>read10xVisium()</code>, spatialLIBD, STexampleData, …)</td>
+<code><a href="https://rdrr.io/pkg/SpatialExperiment/man/read10xVisium.html" class="external-link">read10xVisium()</a></code>, spatialLIBD, STexampleData, …)</td>
 <td><code>sigdots(spe, K0 = 10, genes = hvg)</code></td>
 <td>the <code>"logcounts"</code> assay; the genes you name (all genes if
 there are at most 5,000); <code>spatialCoords(spe)</code>
@@ -162,19 +160,54 @@ the example data:</p>
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: SeuratObject</span></span>
+<span><span class="co">#&gt; Loading required package: sp</span></span>
+<span><span class="co">#&gt; 'SeuratObject' was built under R 4.6.0 but the current version is</span></span>
+<span><span class="co">#&gt; 4.6.2; it is recomended that you reinstall 'SeuratObject' as the ABI</span></span>
+<span><span class="co">#&gt; for R may have changed</span></span>
+<span><span class="co">#&gt; 'SeuratObject' was built with package 'Matrix' 1.7.5 but the current</span></span>
+<span><span class="co">#&gt; version is 1.7.6; it is recomended that you reinstall 'SeuratObject' as</span></span>
+<span><span class="co">#&gt; the ABI for 'Matrix' may have changed</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'SeuratObject'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, t</span></span>
+<span><span class="co">#&gt; v5.6 adds significant improvements in speed and efficiency, particularly for large datasets.</span></span>
+<span><span class="co">#&gt; For more information, see https://satijalab.org/seurat/articles/announcements.</span></span>
 <span><span class="co"># A toy Seurat object: the counts and the spot positions as a FOV. With real data:</span></span>
 <span><span class="co"># obj &lt;- Load10X_Spatial("path/to/spaceranger/outs")</span></span>
-<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">CreateSeuratObject</span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, assay <span class="op">=</span> <span class="st">"Spatial"</span><span class="op">)</span></span>
-<span><span class="va">obj</span><span class="op">[[</span><span class="st">"slice1"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">CreateFOV</span><span class="op">(</span><span class="fu">CreateCentroids</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, cell <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateSeuratObject.html" class="external-link">CreateSeuratObject</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, assay <span class="op">=</span> <span class="st">"Spatial"</span><span class="op">)</span></span>
+<span><span class="va">obj</span><span class="op">[[</span><span class="st">"slice1"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateFOV.html" class="external-link">CreateFOV</a></span><span class="op">(</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateCentroids.html" class="external-link">CreateCentroids</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, cell <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                             type <span class="op">=</span> <span class="st">"centroids"</span>, assay <span class="op">=</span> <span class="st">"Spatial"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">NormalizeData</span><span class="op">(</span><span class="va">obj</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>                       <span class="co"># the "data" layer SigDoTS uses</span></span>
-<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu">FindVariableFeatures</span><span class="op">(</span><span class="va">obj</span>, nfeatures <span class="op">=</span> <span class="fl">150</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># the genes SigDoTS uses</span></span>
+<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/NormalizeData.html" class="external-link">NormalizeData</a></span><span class="op">(</span><span class="va">obj</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>                       <span class="co"># the "data" layer SigDoTS uses</span></span>
+<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/FindVariableFeatures.html" class="external-link">FindVariableFeatures</a></span><span class="op">(</span><span class="va">obj</span>, nfeatures <span class="op">=</span> <span class="fl">150</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># the genes SigDoTS uses</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigdots.html">sigdots</a></span><span class="op">(</span><span class="va">obj</span>, K0 <span class="op">=</span> <span class="fl">5</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">fit</span></span>
+<span><span class="co">#&gt; SigDoTS: 900 spots, 150 genes</span></span>
+<span><span class="co">#&gt; Number of domains: 3   (spots per domain: 300, 295, 305)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Split tree ([node] spots, candidate domains: decision):</span></span>
+<span><span class="co">#&gt; [9] 900 spots, candidate domains 1,2,3,4,5: split</span></span>
+<span><span class="co">#&gt; ├── [6] 300 spots, candidate domains 2,3: no split   =&gt; DOMAIN 1</span></span>
+<span><span class="co">#&gt; │   ├── candidate domain 2  109 spots</span></span>
+<span><span class="co">#&gt; │   └── candidate domain 3  191 spots</span></span>
+<span><span class="co">#&gt; └── [8] 600 spots, candidate domains 1,4,5: split</span></span>
+<span><span class="co">#&gt;     ├── [1] 295 spots, candidate domain 1   =&gt; DOMAIN 2</span></span>
+<span><span class="co">#&gt;     └── [7] 305 spots, candidate domains 4,5: no split   =&gt; DOMAIN 3</span></span>
+<span><span class="co">#&gt;         ├── candidate domain 4  154 spots</span></span>
+<span><span class="co">#&gt;         └── candidate domain 5  151 spots</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Use summary() for the tests.</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_domains.html">add_domains</a></span><span class="op">(</span><span class="va">obj</span>, <span class="va">fit</span><span class="op">)</span>       <span class="co"># adds obj$sigdots_domain and obj$sigdots_candidate_domain</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">sigdots_domain</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">region</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">sigdots_domain</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">region</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    </span></span>
+<span><span class="co">#&gt;       1   2   3</span></span>
+<span><span class="co">#&gt;   1   0   0 300</span></span>
+<span><span class="co">#&gt;   2 295   0   0</span></span>
+<span><span class="co">#&gt;   3   5 300   0</span></span></code></pre></div>
 <p>With a Seurat object you can also name the assay
 (<code>assay = "SCT"</code>), choose the genes
 (<code>genes = VariableFeatures(obj)[1:1000]</code>), give the positions
@@ -190,19 +223,137 @@ tissue image (add <code><a href="https://ggplot2.tidyverse.org/reference/scale_c
 <h3 id="a-spatialexperiment-object">A SpatialExperiment object<a class="anchor" aria-label="anchor" href="#a-spatialexperiment-object"></a>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SpatialExperiment</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: SingleCellExperiment</span></span>
+<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
+<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
+<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
+<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
+<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
+<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
+<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
+<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
+<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
+<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
+<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
+<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
+<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
+<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
+<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
+<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
+<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
+<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
+<span><span class="co">#&gt; Loading required package: stats4</span></span>
+<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
+<span><span class="co">#&gt; Loading required package: generics</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'generics'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     as.difftime, as.factor, as.ordered, intersect, is.element, setdiff,</span></span>
+<span><span class="co">#&gt;     setequal, union</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
+<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
+<span><span class="co">#&gt;     get, grep, grepl, is.unsorted, lapply, Map, mapply, match, mget,</span></span>
+<span><span class="co">#&gt;     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,</span></span>
+<span><span class="co">#&gt;     rbind, Reduce, rownames, sapply, saveRDS, table, tapply, unique,</span></span>
+<span><span class="co">#&gt;     unsplit, which.max, which.min</span></span>
+<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:utils':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     findMatches</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
+<span><span class="co">#&gt; Loading required package: IRanges</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'IRanges'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:sp':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     %over%</span></span>
+<span><span class="co">#&gt; Loading required package: Seqinfo</span></span>
+<span><span class="co">#&gt; Loading required package: Biobase</span></span>
+<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
+<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
+<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     rowMedians</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'SummarizedExperiment'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:Seurat':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Assays</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:SeuratObject':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Assays</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scuttle</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/MarioniLab/scran/" class="external-link">scran</a></span><span class="op">)</span></span>
 <span><span class="co"># A toy SpatialExperiment: with real data, spe &lt;- read10xVisium("path/to/spaceranger/outs")</span></span>
-<span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu">SpatialExperiment</span><span class="op">(</span>assays <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span><span class="op">)</span>, spatialCoords <span class="op">=</span> <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span><span class="op">)</span></span>
+<span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment.html" class="external-link">SpatialExperiment</a></span><span class="op">(</span>assays <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span><span class="op">)</span>, spatialCoords <span class="op">=</span> <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu">logNormCounts</span><span class="op">(</span><span class="va">spe</span><span class="op">)</span>                                        <span class="co"># the "logcounts" assay SigDoTS uses</span></span>
-<span><span class="va">hvg</span> <span class="op">&lt;-</span> <span class="fu">getTopHVGs</span><span class="op">(</span><span class="fu">modelGeneVar</span><span class="op">(</span><span class="va">spe</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">150</span><span class="op">)</span>                    <span class="co"># the genes SigDoTS uses</span></span>
+<span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">spe</span><span class="op">)</span>                                        <span class="co"># the "logcounts" assay SigDoTS uses</span></span>
+<span><span class="co">#&gt; Warning in .library_size_factors(assay(x, assay.type), ...): 'librarySizeFactors' is deprecated.</span></span>
+<span><span class="co">#&gt; Use 'scrapper::centerSizeFactors' instead.</span></span>
+<span><span class="co">#&gt; See help("Deprecated")</span></span>
+<span><span class="co">#&gt; Warning in .local(x, ...): 'normalizeCounts' is deprecated.</span></span>
+<span><span class="co">#&gt; Use 'scrapper::normalizeCounts' instead.</span></span>
+<span><span class="co">#&gt; See help("Deprecated")</span></span>
+<span><span class="va">hvg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/scran/man/modelGeneVar.html" class="external-link">modelGeneVar</a></span><span class="op">(</span><span class="va">spe</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">150</span><span class="op">)</span>                    <span class="co"># the genes SigDoTS uses</span></span>
+<span><span class="co">#&gt; Warning in getTopHVGs(modelGeneVar(spe), n = 150): 'getTopHVGs' is deprecated.</span></span>
+<span><span class="co">#&gt; Use 'scrapper::chooseHighlyVariableGenes' instead.</span></span>
+<span><span class="co">#&gt; See help("Deprecated")</span></span>
+<span><span class="co">#&gt; Warning in fitTrendVar(fm, fv, ...): 'fitTrendVar' is deprecated.</span></span>
+<span><span class="co">#&gt; Use 'scrapper::fitVarianceTrend' instead.</span></span>
+<span><span class="co">#&gt; See help("Deprecated")</span></span>
+<span><span class="co">#&gt; Warning in combineBlocks(collected, method = method, equiweight = equiweight, : 'combineBlocks' is deprecated.</span></span>
+<span><span class="co">#&gt; See help("Deprecated")</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigdots.html">sigdots</a></span><span class="op">(</span><span class="va">spe</span>, K0 <span class="op">=</span> <span class="fl">5</span>, genes <span class="op">=</span> <span class="va">hvg</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">fit</span></span>
+<span><span class="co">#&gt; SigDoTS: 900 spots, 94 genes</span></span>
+<span><span class="co">#&gt; Number of domains: 3   (spots per domain: 300, 299, 301)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Split tree ([node] spots, candidate domains: decision):</span></span>
+<span><span class="co">#&gt; [9] 900 spots, candidate domains 1,2,3,4,5: split</span></span>
+<span><span class="co">#&gt; ├── [5] 300 spots, candidate domain 5   =&gt; DOMAIN 1</span></span>
+<span><span class="co">#&gt; └── [8] 600 spots, candidate domains 1,2,3,4: split</span></span>
+<span><span class="co">#&gt;     ├── [6] 299 spots, candidate domains 3,4: no split   =&gt; DOMAIN 2</span></span>
+<span><span class="co">#&gt;     │   ├── candidate domain 3  160 spots</span></span>
+<span><span class="co">#&gt;     │   └── candidate domain 4  139 spots</span></span>
+<span><span class="co">#&gt;     └── [7] 301 spots, candidate domains 1,2: no split   =&gt; DOMAIN 3</span></span>
+<span><span class="co">#&gt;         ├── candidate domain 1  144 spots</span></span>
+<span><span class="co">#&gt;         └── candidate domain 2  157 spots</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Use summary() for the tests.</span></span>
 <span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_domains.html">add_domains</a></span><span class="op">(</span><span class="va">spe</span>, <span class="va">fit</span><span class="op">)</span>       <span class="co"># adds colData(spe)$sigdots_domain and $sigdots_candidate_domain</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">colData</span><span class="op">(</span><span class="va">spe</span><span class="op">)</span><span class="op">$</span><span class="va">sigdots_domain</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">region</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">colData</span><span class="op">(</span><span class="va">spe</span><span class="op">)</span><span class="op">$</span><span class="va">sigdots_domain</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">region</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    </span></span>
+<span><span class="co">#&gt;       1   2   3</span></span>
+<span><span class="co">#&gt;   1   0   0 300</span></span>
+<span><span class="co">#&gt;   2 299   0   0</span></span>
+<span><span class="co">#&gt;   3   1 300   0</span></span></code></pre></div>
 <p>For Visium data <code>spatialCoords(spe)</code> holds pixel positions
 (<code>pxl_col_in_fullres</code>, <code>pxl_row_in_fullres</code>); any
 unit works. A <code>SingleCellExperiment</code> without positions, for

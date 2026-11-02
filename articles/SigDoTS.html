@@ -48,12 +48,10 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-documentation">
-<li><a class="dropdown-item" href="../articles/reference-manual.html">Reference manual (all functions on one page)</a></li>
-    <li><a class="dropdown-item" href="../reference/index.html">One page per function</a></li>
+<li><a class="dropdown-item" href="../articles/reference-manual.html">Reference manual</a></li>
     <li><a class="dropdown-item" href="../SigDoTS-manual.pdf">Reference manual (PDF)</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav"></ul>
 </div>
@@ -127,10 +125,10 @@ SigDoTS then decides which candidate domains to merge. Here we use
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigdots.html">sigdots</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span></span>
-<span><span class="co">#&gt;   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [12 s]</span></span>
+<span><span class="co">#&gt;   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [9 s]</span></span>
 <span><span class="co">#&gt;   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]</span></span>
-<span><span class="co">#&gt;   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [9 s]</span></span>
-<span><span class="co">#&gt;   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]</span></span></code></pre></div>
+<span><span class="co">#&gt;   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]</span></span>
+<span><span class="co">#&gt;   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]</span></span></code></pre></div>
 <p>While it runs, SigDoTS prints one line per test: where in the tree
 the test is, how many spots and candidate domains that part has, the
 decision, the number of simulated datasets it used and the time it took.
