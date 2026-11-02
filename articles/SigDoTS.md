@@ -58,10 +58,10 @@ domains to merge. Here we use `K0 = 5` for three true domains.
 
 fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [9 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]
 #>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [8 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
 ```
 
 While it runs, SigDoTS prints one line per test: where in the tree the

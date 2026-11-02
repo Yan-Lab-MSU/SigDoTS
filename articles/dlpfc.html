@@ -129,6 +129,12 @@ other normalisation and gene selection works as well.</p>
 <span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="va">spe</span><span class="op">[</span><span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">spe</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">10</span>, <span class="op">]</span>      <span class="co"># genes with at least 10 counts in all</span></span>
 <span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">spe</span><span class="op">)</span>                             <span class="co"># adds the "logcounts" assay</span></span>
 <span><span class="va">hvg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/scran/man/modelGeneVar.html" class="external-link">modelGeneVar</a></span><span class="op">(</span><span class="va">spe</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span>        <span class="co"># the 2,000 most variable genes</span></span></code></pre></div>
+<p>With Bioconductor 3.23 (scuttle 1.22, scran 1.40),
+<code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts()</a></code>, <code><a href="https://rdrr.io/pkg/scran/man/modelGeneVar.html" class="external-link">modelGeneVar()</a></code> and
+<code><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs()</a></code> print warnings that they, or functions they
+use, are deprecated in favour of the newer package scrapper. They still
+work: in R 4.6.1 with these versions, the three runs below give the same
+domains.</p>
 <p>The positions are pixel coordinates in the tissue image, where rows
 count downwards. Flipping the row axis makes the plots below appear the
 same way up as the image; the test does not care, because it uses only

@@ -47,21 +47,6 @@ dim(counts)
 ``` r
 
 library(Seurat)
-#> Loading required package: SeuratObject
-#> Loading required package: sp
-#> 'SeuratObject' was built under R 4.6.0 but the current version is
-#> 4.6.2; it is recomended that you reinstall 'SeuratObject' as the ABI
-#> for R may have changed
-#> 'SeuratObject' was built with package 'Matrix' 1.7.5 but the current
-#> version is 1.7.6; it is recomended that you reinstall 'SeuratObject' as
-#> the ABI for 'Matrix' may have changed
-#> 
-#> Attaching package: 'SeuratObject'
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, t
-#> v5.6 adds significant improvements in speed and efficiency, particularly for large datasets.
-#> For more information, see https://satijalab.org/seurat/articles/announcements.
 # A toy Seurat object: the counts and the spot positions as a FOV. With real data:
 # obj <- Load10X_Spatial("path/to/spaceranger/outs")
 obj <- CreateSeuratObject(counts = counts, assay = "Spatial")
@@ -111,111 +96,13 @@ appear flipped vertically relative to the tissue image (add
 ``` r
 
 library(SpatialExperiment)
-#> Loading required package: SingleCellExperiment
-#> Loading required package: SummarizedExperiment
-#> Loading required package: MatrixGenerics
-#> Loading required package: matrixStats
-#> 
-#> Attaching package: 'MatrixGenerics'
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
-#>     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
-#>     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
-#>     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
-#>     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
-#>     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
-#>     colWeightedMeans, colWeightedMedians, colWeightedSds,
-#>     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
-#>     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
-#>     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
-#>     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
-#>     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
-#>     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
-#>     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
-#>     rowWeightedSds, rowWeightedVars
-#> Loading required package: GenomicRanges
-#> Loading required package: stats4
-#> Loading required package: BiocGenerics
-#> Loading required package: generics
-#> 
-#> Attaching package: 'generics'
-#> The following objects are masked from 'package:base':
-#> 
-#>     as.difftime, as.factor, as.ordered, intersect, is.element, setdiff,
-#>     setequal, union
-#> 
-#> Attaching package: 'BiocGenerics'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     IQR, mad, sd, var, xtabs
-#> The following objects are masked from 'package:base':
-#> 
-#>     anyDuplicated, aperm, append, as.data.frame, basename, cbind,
-#>     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
-#>     get, grep, grepl, is.unsorted, lapply, Map, mapply, match, mget,
-#>     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
-#>     rbind, Reduce, rownames, sapply, saveRDS, table, tapply, unique,
-#>     unsplit, which.max, which.min
-#> Loading required package: S4Vectors
-#> 
-#> Attaching package: 'S4Vectors'
-#> The following object is masked from 'package:utils':
-#> 
-#>     findMatches
-#> The following objects are masked from 'package:base':
-#> 
-#>     expand.grid, I, unname
-#> Loading required package: IRanges
-#> 
-#> Attaching package: 'IRanges'
-#> The following object is masked from 'package:sp':
-#> 
-#>     %over%
-#> Loading required package: Seqinfo
-#> Loading required package: Biobase
-#> Welcome to Bioconductor
-#> 
-#>     Vignettes contain introductory material; view with
-#>     'browseVignettes()'. To cite Bioconductor, see
-#>     'citation("Biobase")', and for packages 'citation("pkgname")'.
-#> 
-#> Attaching package: 'Biobase'
-#> The following object is masked from 'package:MatrixGenerics':
-#> 
-#>     rowMedians
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     anyMissing, rowMedians
-#> 
-#> Attaching package: 'SummarizedExperiment'
-#> The following object is masked from 'package:Seurat':
-#> 
-#>     Assays
-#> The following object is masked from 'package:SeuratObject':
-#> 
-#>     Assays
 library(scuttle)
 library(scran)
 # A toy SpatialExperiment: with real data, spe <- read10xVisium("path/to/spaceranger/outs")
 spe <- SpatialExperiment(assays = list(counts = counts), spatialCoords = sigdots_example$coords)
 
 spe <- logNormCounts(spe)                                        # the "logcounts" assay SigDoTS uses
-#> Warning in .library_size_factors(assay(x, assay.type), ...): 'librarySizeFactors' is deprecated.
-#> Use 'scrapper::centerSizeFactors' instead.
-#> See help("Deprecated")
-#> Warning in .local(x, ...): 'normalizeCounts' is deprecated.
-#> Use 'scrapper::normalizeCounts' instead.
-#> See help("Deprecated")
 hvg <- getTopHVGs(modelGeneVar(spe), n = 150)                    # the genes SigDoTS uses
-#> Warning in getTopHVGs(modelGeneVar(spe), n = 150): 'getTopHVGs' is deprecated.
-#> Use 'scrapper::chooseHighlyVariableGenes' instead.
-#> See help("Deprecated")
-#> Warning in fitTrendVar(fm, fv, ...): 'fitTrendVar' is deprecated.
-#> Use 'scrapper::fitVarianceTrend' instead.
-#> See help("Deprecated")
-#> Warning in combineBlocks(collected, method = method, equiweight = equiweight, : 'combineBlocks' is deprecated.
-#> See help("Deprecated")
 
 fit <- sigdots(spe, K0 = 5, genes = hvg, verbose = FALSE)
 fit
@@ -242,6 +129,15 @@ table(colData(spe)$sigdots_domain, sigdots_example$region)
 #>   2 299   0   0
 #>   3   1 300   0
 ```
+
+Package start-up messages are not shown on this page. With Bioconductor
+3.23 (scuttle 1.22, scran 1.40),
+[`logNormCounts()`](https://rdrr.io/pkg/scuttle/man/logNormCounts.html),
+[`modelGeneVar()`](https://rdrr.io/pkg/scran/man/modelGeneVar.html) and
+[`getTopHVGs()`](https://rdrr.io/pkg/scran/man/getTopHVGs.html) print
+warnings that they, or functions they use, are deprecated in favour of
+the newer package scrapper; they still work, and any other normalisation
+and gene selection works as well.
 
 For Visium data `spatialCoords(spe)` holds pixel positions
 (`pxl_col_in_fullres`, `pxl_row_in_fullres`); any unit works. A

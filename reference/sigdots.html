@@ -490,10 +490,10 @@ method with figures.</p></div>
 <span class="r-in"><span><span class="co"># about 20 seconds on one core</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">sigdots</span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [9 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [8 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]</span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Number of domains: 3   (spots per domain: 300, 300, 300)</span>
@@ -552,19 +552,19 @@ method with figures.</p></div>
 <span class="r-in"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu">sigdots</span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>                B_min <span class="op">=</span> <span class="fl">50</span>, B_max <span class="op">=</span> <span class="fl">50</span>, n_cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [43 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [18 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [25 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [49 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [19 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [39 s]</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [23 s]</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># the normal approximation of the p-value</span></span></span>
 <span class="r-in"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu">sigdots</span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>                pvalue_method <span class="op">=</span> <span class="st">"normal_adaptive"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [7 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [4 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [9 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [5 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [5 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [5 s]</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit3</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Data:     900 spots x 200 genes</span>

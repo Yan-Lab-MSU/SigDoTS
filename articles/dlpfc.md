@@ -66,6 +66,14 @@ spe <- logNormCounts(spe)                             # adds the "logcounts" ass
 hvg <- getTopHVGs(modelGeneVar(spe), n = 2000)        # the 2,000 most variable genes
 ```
 
+With Bioconductor 3.23 (scuttle 1.22, scran 1.40),
+[`logNormCounts()`](https://rdrr.io/pkg/scuttle/man/logNormCounts.html),
+[`modelGeneVar()`](https://rdrr.io/pkg/scran/man/modelGeneVar.html) and
+[`getTopHVGs()`](https://rdrr.io/pkg/scran/man/getTopHVGs.html) print
+warnings that they, or functions they use, are deprecated in favour of
+the newer package scrapper. They still work: in R 4.6.1 with these
+versions, the three runs below give the same domains.
+
 The positions are pixel coordinates in the tissue image, where rows
 count downwards. Flipping the row axis makes the plots below appear the
 same way up as the image; the test does not care, because it uses only
