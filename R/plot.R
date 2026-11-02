@@ -34,15 +34,42 @@
 # Default point size: smaller as the number of spots grows.
 .point_size <- function(n) max(0.2, min(3, 45 / sqrt(n)))
 
-# The spot nearest to the centre of each set of spots, so a label sits on the set itself.
+# Where each set's number is written: a spot deep inside the set. A spot's clearance is its
+# distance to the nearest spot outside the set (another set or an untested spot) or to the edge
+# of the tissue; among the spots with at least 3/4 of the set's largest clearance, the one
+# nearest the set's mean position is used, so a band of even width is numbered near its middle.
+# Until 2026-11-02 the number went to the spot nearest the mean position, which for curved,
+# band-shaped sets (cortical layers) lies on the set's boundary.
 .label_positions <- function(coords, labels) {
   ids <- sort(unique(labels[!is.na(labels)]))
+  if (!length(ids)) return(NULL)
+  n <- nrow(coords)
+  h <- if (n >= 2) stats::median(RANN::nn2(coords, k = 2)$nn.dists[, 2]) else NA_real_
+  d_edge <- if (is.finite(h) && h > 0) .edge_distance(coords, h) else rep(Inf, n)
   do.call(rbind, lapply(ids, function(k) {
     i <- which(labels == k)
+    o <- which(is.na(labels) | labels != k)
+    clear <- d_edge[i]
+    if (length(o))
+      clear <- pmin(clear, RANN::nn2(coords[o, , drop = FALSE], coords[i, , drop = FALSE], k = 1)$nn.dists[, 1])
+    deep <- i[clear >= 0.75 * max(clear)]
     c0 <- colMeans(coords[i, , drop = FALSE])
-    j <- i[which.min(rowSums((coords[i, , drop = FALSE] - rep(c0, each = length(i)))^2))]
+    j <- deep[which.min(rowSums((coords[deep, , drop = FALSE] - rep(c0, each = length(deep)))^2))]
     data.frame(x = coords[j, 1], y = coords[j, 2], label = as.character(k))
   }))
+}
+
+# Distance from each spot to the edge of the tissue (h: the typical spacing). The points of a
+# grid (step h/2, or 1/1000 of the larger side when that is coarser; 3h beyond the spots) that
+# are more than 1.5h from every spot lie outside the tissue; a spot's distance to the edge is
+# its distance to the nearest of them.
+.edge_distance <- function(coords, h) {
+  r <- apply(coords, 2, range)
+  step <- max(h / 2, max(r[2, ] - r[1, ]) / 1000)
+  grid <- as.matrix(expand.grid(seq(r[1, 1] - 3 * h, r[2, 1] + 3 * h, by = step),
+                                seq(r[1, 2] - 3 * h, r[2, 2] + 3 * h, by = step)))
+  outside <- grid[RANN::nn2(coords, grid, k = 1)$nn.dists[, 1] > 1.5 * h, , drop = FALSE]
+  RANN::nn2(outside, coords, k = 1)$nn.dists[, 1]
 }
 
 # Boundary between two sets of spots: for each pair of nearby spots with different labels, a
@@ -103,7 +130,12 @@
 #' downwards, so a map may appear upside down compared with the tissue image; add
 #' `ggplot2::scale_y_reverse()` to turn it. Domains are coloured in the order of their numbers
 #' with a fixed palette of eight colours (more domains use `grDevices::hcl.colors()`); the
-#' boundaries are drawn between neighbouring spots of different domains.
+#' boundaries are drawn between neighbouring spots of different domains. Each domain's number
+#' is written inside the domain, not on a boundary: for every spot of the domain, the distance
+#' to the nearest spot of another domain (or untested spot) or to the edge of the tissue is
+#' measured, and among the spots where it is at least three quarters of its largest value, the
+#' number goes to the one nearest the domain's mean position. A domain in several separate
+#' pieces is numbered once. The candidate map numbers its candidate domains in the same way.
 #'
 #' In the correlogram, points close to the line mean that the single-domain model describes the
 #' spatial correlation of the data at that test; points well above the line at short distances
