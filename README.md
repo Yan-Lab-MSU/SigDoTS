@@ -1,14 +1,11 @@
 
 <!-- README.md is generated from README.Rmd. Edit README.Rmd, then knit it. -->
 
-# SigDoTS <img src="man/figures/logo.png" align="right" height="240" alt="SigDoTS logo" />
+<img src="man/figures/readme_header.png" width="100%" alt="SigDoTS: statistical significance testing for domain detection in spatial transcriptomics" />
 
 <!-- badges: start -->
 <!-- When the repository is public: the R-CMD-check badge from .github/workflows/R-CMD-check.yaml. -->
 <!-- badges: end -->
-
-**Statistical significance testing for domain detection in spatial
-transcriptomics.**
 
 Domain-detection methods (BANKSY, BayesSpace, Seurat/Scanpy clustering,
 …) divide a tissue section into spatial domains, but the number of
@@ -102,9 +99,11 @@ sudo apt-get install libglpk-dev libgmp-dev libxml2-dev
 
 (on Fedora: `sudo dnf install glpk-devel gmp-devel libxml2-devel`).
 
-Tested on: Linux (Ubuntu 22.04 with R 4.3.2 and R 4.5.1; clean Ubuntu
-24.04 containers with R 4.4.2 and R 4.6.1, where `R CMD check --as-cran`
-passes on R 4.6.1) and macOS (R 4.x). Windows: not yet tested.
+Tested on Windows, macOS and Linux: `R CMD check --as-cran` passes on
+Windows (R 4.6.2), macOS (R 4.6.2, Apple silicon) and Ubuntu (R 4.5.3, R
+4.6.2 and the development version of R) on GitHub Actions, and in clean
+Ubuntu 24.04 containers with R 4.6.1; the package also runs with R
+4.3.2, R 4.4.2 and R 4.5.1 on Linux.
 
 Optional, only to make the candidate domains with BANKSY or BayesSpace:
 
@@ -126,10 +125,10 @@ time <- system.time(
   fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 )
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [10 s]
 #>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
 #>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [7 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
 fit
 #> SigDoTS: 900 spots, 200 genes
 #> Number of domains: 3   (spots per domain: 300, 300, 300)
@@ -148,7 +147,7 @@ fit
 #> Use summary() for the tests.
 ```
 
-Run time of this demo: 24 seconds on one core of an AMD EPYC 9654
+Run time of this demo: 22 seconds on one core of an AMD EPYC 9654
 (Linux). It also ran on a macOS laptop (time not measured).
 
 The three domains match the three true regions:
