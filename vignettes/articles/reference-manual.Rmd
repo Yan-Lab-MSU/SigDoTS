@@ -1,0 +1,40 @@
+---
+title: "Reference manual"
+---
+
+This page is the complete documentation of SigDoTS: every function, what it does, and every
+argument with its meaning, its allowed values and its default, followed by what the function
+returns and an example. It is the same text as the help pages in R (`?sigdots`,
+`?sigdots_control`, ...), gathered on one page in the order in which you would use the
+functions. The same manual as a PDF: [SigDoTS-manual.pdf](../SigDoTS-manual.pdf). One page
+per function: [function index](../reference/index.html).
+
+```{r manual, echo = FALSE, results = "asis"}
+# Every help page of the installed package, rendered by R's own converter (tools::Rd2HTML), so
+# the text is exactly that of ?topic in R. The function's name is put before each title, and
+# R's section headings are moved one level down so that the table of contents on the right
+# lists the functions.
+topics <- c("SigDoTS-package" = "The SigDoTS package", sigdots = "sigdots()",
+            sigdots_control = "sigdots_control()", sigdots_prepare = "sigdots_prepare()",
+            summary.sigdots = "print() and summary()", domains = "domains()",
+            add_domains = "add_domains()", plot.sigdots = "plot()",
+            sigdots_example = "sigdots_example")
+db <- tools::Rd_db("SigDoTS")
+tmp <- tempfile("manual")
+dir.create(file.path(tmp, "html"), recursive = TRUE)
+dir.create(file.path(tmp, "help"))   # Rd2HTML writes small redirect files here
+version <- as.character(utils::packageVersion("SigDoTS"))
+cat("<div class=\"ref-manual\">\n")
+for (nm in names(topics)) {
+  f <- file.path(tmp, "html", paste0(nm, ".html"))
+  invisible(utils::capture.output(suppressWarnings(suppressMessages(
+    tools::Rd2HTML(db[[paste0(nm, ".Rd")]], out = f, package = c("SigDoTS", version),
+                   standalone = FALSE, no_links = TRUE)))))
+  h <- paste(readLines(f, encoding = "UTF-8"), collapse = "\n")
+  prefix <- if (nm == "SigDoTS-package") "" else sprintf("<code>%s</code>: ", topics[[nm]])
+  h <- sub("<h2 id='[^']*'>", sprintf("<h2 id='%s'>%s", gsub(".", "-", nm, fixed = TRUE), prefix), h)
+  h <- gsub("<(/?)h3>", "<\\1h4>", h)
+  cat(h, "\n\n")
+}
+cat("</div>\n")
+```

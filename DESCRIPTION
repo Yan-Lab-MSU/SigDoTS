@@ -1,0 +1,49 @@
+Package: SigDoTS
+Type: Package
+Title: Hierarchical Significance Test for Spatial Domains
+Version: 0.2.5.8
+Authors@R: c(
+    person("Huairui", "Wang", email = "byeah8887@gmail.com", role = c("aut", "cre")),
+    person("Feiyu", "Cao", role = "aut"),
+    person("Hui", "Shen", role = "aut"),
+    person("Yufeng", "Liu", role = "aut"),
+    person("Guanao", "Yan", email = "gayan@msu.edu", role = "aut"))
+Description: Tests, from the top of a tree of candidate spatial domains downwards, whether
+    each proposed split of spots in a spatial transcriptomics sample is significant. The null
+    model at each split has no domain structure but keeps the spatial correlation of the
+    noise, estimated from pairs of spots within the same candidate domain.
+License: MIT + file LICENSE
+URL: https://github.com/Yan-Lab-MSU/SigDoTS, https://yan-lab-msu.github.io/SigDoTS/
+BugReports: https://github.com/Yan-Lab-MSU/SigDoTS/issues
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.3.0)
+Imports:
+    fields,
+    ggplot2,
+    GpGp,
+    grDevices,
+    igraph,
+    Matrix,
+    parallel,
+    RANN,
+    stats,
+    utils
+Suggests:
+    BayesSpace,
+    Banksy,
+    knitr,
+    rmarkdown,
+    scran,
+    scuttle,
+    Seurat,
+    SeuratObject,
+    SingleCellExperiment,
+    SpatialExperiment,
+    SummarizedExperiment,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3

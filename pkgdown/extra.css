@@ -1,0 +1,20 @@
+/* SigDoTS website. pkgdown 2.0.7 has no setting for these, so they are hidden here:
+   the package version next to the name in the navbar, the search box, and the footer
+   ("Developed by ...", "Site built with pkgdown ..."). On the home page the logo that
+   pkgdown floats inside the text (from the README's <img align="right">) is hidden, and the
+   logo is shown instead in the right-hand column (pkgdown/sidebar.html), filling its width. */
+.navbar small.nav-text { display: none; }
+form[role="search"] { display: none; }
+footer { display: none; }
+main img.logo { display: none; }
+.sigdots-logo { margin-top: 0.75rem; }
+.sigdots-logo img { display: block; width: 100%; height: auto; }
+
+/* The one-page reference manual (vignettes/articles/reference-manual.Rmd): R's help pages as
+   rendered by tools::Rd2HTML. A rule above each function; the arguments table with the names in
+   a column of their own. */
+.ref-manual h2 { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #dee2e6; }
+.ref-manual h4 { margin-top: 1.25rem; }
+.ref-manual table { margin-bottom: 1rem; }
+.ref-manual table td { vertical-align: top; padding: 0.2rem 0.75rem 0.2rem 0; }
+.ref-manual table td:first-child { white-space: nowrap; font-weight: 600; }

@@ -1,0 +1,103 @@
+# url: https://yan-lab-msu.github.io/SigDoTS/   # the planned address (manuscript, Code Availability); set when the repository is public
+template:
+  bootstrap: 5
+
+home:
+  title: "SigDoTS: significance testing for spatial domains"
+  description: >
+    Tests whether the spatial domains found in a spatial transcriptomics sample are
+    supported by the data, with a single-domain null model that keeps the spatial
+    correlation of the noise and the gene-gene covariance.
+  sidebar:
+    html: pkgdown/sidebar.html   # the right-hand column holds only the logo (no Developers, Licence or links)
+
+# The navbar has no search box, no version and no right-hand items; the footer is empty; the
+# logo is shown in the home page's right-hand column instead of floating in the text. These are
+# set in pkgdown/extra.css (hidden by CSS where pkgdown 2.0.7 has no setting), in
+# pkgdown/sidebar.html and in the two blank footer components below.
+navbar:
+  structure:
+    left: [intro, tutorials, method, reference, news]
+    right: []
+  components:
+    tutorials:
+      text: Tutorials
+      menu:
+      - text: Getting started (simulated data)
+        href: articles/SigDoTS.html
+      - text: Real data application (human cortex, Visium)
+        href: articles/dlpfc.html
+      - text: Using SigDoTS on your own data
+        href: articles/own-data.html
+      - text: Troubleshooting and FAQ
+        href: articles/faq.html
+    method:
+      text: Method
+      href: articles/how-it-works.html
+    reference:
+      text: Documentation
+      menu:
+      - text: Reference manual (all functions on one page)
+        href: articles/reference-manual.html
+      - text: One page per function
+        href: reference/index.html
+      - text: Reference manual (PDF)
+        href: SigDoTS-manual.pdf
+
+footer:
+  structure:
+    left: blank
+    right: blank
+  components:
+    blank: ""
+
+reference:
+- title: Run SigDoTS
+  desc: >
+    `sigdots()` runs the whole analysis and returns the result; `sigdots_control()` holds the
+    settings that rarely need changing. Each page below explains the function, every argument
+    with its allowed values and default, and what is returned.
+  contents:
+  - sigdots
+  - sigdots_control
+- title: Prepare the input
+  desc: >
+    `sigdots()` takes a normalised expression matrix with coordinates, a Seurat object or a
+    SpatialExperiment object directly. From raw counts, `sigdots_prepare()` makes the matrix.
+  contents:
+  - sigdots_prepare
+- title: Read the result
+  desc: >
+    What `print()` and `summary()` show and how to read the split tree and the tests table;
+    the domain of every spot as a table or written back into your object; the plots.
+  contents:
+  - summary.sigdots
+  - domains
+  - add_domains
+  - plot.sigdots
+- title: Example data
+  contents:
+  - sigdots_example
+- title: Overview
+  contents:
+  - SigDoTS-package
+
+articles:
+- title: Tutorials
+  navbar: ~
+  contents:
+  - SigDoTS
+  - articles/dlpfc
+  - own-data
+  - faq
+- title: Method
+  navbar: ~
+  contents:
+  - how-it-works
+- title: Documentation
+  navbar: ~
+  contents:
+  - articles/reference-manual
+
+news:
+  one_page: true

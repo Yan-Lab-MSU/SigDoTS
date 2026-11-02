@@ -1,0 +1,167 @@
+---
+title: "Getting started with SigDoTS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with SigDoTS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dpi = 96, out.width = "80%")
+```
+
+This tutorial runs SigDoTS on the simulated dataset that comes with the package and shows
+how to read every part of the result. It takes about half a minute to run.
+
+
+```{r setup}
+library(SigDoTS)
+```
+
+## The example data
+
+`sigdots_example` has 900 spots on a 30 x 30 grid and 200 genes. The spots belong to three
+true domains of 300 spots each. Forty of the genes ("marker" genes) have different means in
+the three domains; the noise is correlated between nearby spots and between genes.
+
+```{r data}
+str(sigdots_example, max.level = 1)
+sigdots_example$x[1:3, c(1:3, 198:200)]
+table(sigdots_example$region)
+```
+
+SigDoTS needs two things: the expression matrix `x` (one row per spot, one column per gene,
+already normalised) and the coordinates `coords` (one row per spot, two columns, in the same
+order). The true regions are not used; we keep them to compare with the result.
+
+If your data are in a Seurat or SpatialExperiment object, pass the object itself instead of the
+two matrices; see `vignette("own-data")`.
+
+## Running SigDoTS
+
+The one choice to make is the number of candidate domains, `K0`. SigDoTS first divides the
+spots into `K0` candidate domains (by default with k-means on the first 15 principal components). `K0`
+should be larger than the number of domains you expect, so that each candidate domain lies
+inside one true domain; SigDoTS then decides which candidate domains to merge. Here we use `K0 = 5` for
+three true domains.
+
+```{r run}
+fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
+```
+
+While it runs, SigDoTS prints one line per test: where in the tree the test is, how many
+spots and candidate domains that part has, the decision, the number of simulated datasets it
+used and the time it took. `verbose = FALSE` silences these lines.
+
+## The split tree
+
+```{r print}
+fit
+```
+
+How to read the tree:
+
+* Each line starting with a number in brackets is a part of the tree (a *node*), with its
+  number of spots and the candidate domains it contains.
+* `split` or `no split` is the decision of the test at that node. SigDoTS tests from the
+  top: the whole sample first; the two sides of a split are tested in turn.
+* `=> DOMAIN k` marks a part that was not split further: it is the k-th final domain.
+  Inside a domain, only the candidate domains and their sizes are listed.
+* A single candidate domain (here candidate domain 4, `[4]`) is never tested; when its parent is split,
+  it becomes a domain by itself.
+
+## The tests
+
+```{r summary}
+summary(fit)
+```
+
+The table has one row per test: `statistic` is the split statistic of the data (between 0
+and 1; smaller means a clearer split), `null_used` the number of simulated single-domain
+datasets the test used, `p` the p-value, `level` the significance level of this test, and
+`decision` the outcome. A split is made when `p <= level`. The level of a test on m of the
+n spots is `alpha * (m - 1) / (n - 1)` (here `alpha = 0.05` and n = 900), which keeps the
+probability of any false split in the whole tree at most `alpha`. Every column is explained
+in `?summary.sigdots`.
+
+By default each test simulates 10 datasets, raised for a test to the smallest number with
+which the p-value can reach the level (19 at the first test), and stops as soon as the
+decision cannot change. With so few datasets a p-value takes only a few values; the decision
+is what the test establishes. Finer p-values cost more time (`B_min`, `B_max`).
+
+The table is also returned as a data frame:
+
+```{r summary-table}
+summary(fit)$tests
+```
+
+## Getting the domains
+
+```{r domains}
+head(domains(fit))
+table(domain = domains(fit)$domain, true_region = sigdots_example$region)
+```
+
+The three domains are the three true regions. `domains(fit)` has one row per spot in the
+order of the data, so it can be joined to any other per-spot information. If the data came
+from a Seurat or SpatialExperiment object, `add_domains(object, fit)` writes the domain of
+every spot into the object.
+
+## Plots
+
+`plot()` draws four kinds of plots, all ggplot2 objects that you can modify as usual.
+
+The final domains, with the domain numbers and the boundaries between domains:
+
+```{r plot-domains, fig.width = 5.5, fig.height = 5}
+plot(fit)
+```
+
+The candidate domains, with the boundaries of the final domains, showing which candidate domains
+were merged:
+
+```{r plot-candidates, fig.width = 5.5, fig.height = 5}
+plot(fit, type = "candidates")
+```
+
+The split tree, with each test's decision, p-value and level:
+
+```{r plot-tree, fig.width = 8, fig.height = 4.5, out.width = "95%"}
+plot(fit, type = "tree")
+```
+
+The spatial correlation of the noise, as SigDoTS estimated it at the first test for the
+single-domain model: the points are the correlation between pairs of spots at each distance
+(in units of the distance between neighbouring spots), after removing each candidate domain's
+mean and averaged over genes; the line is what the fitted model gives. `eta` is the share of
+the noise variance that is spatially correlated and `ell` how far the correlation reaches;
+here both are close to the values the data were simulated with (0.5 and 3). The line following
+the points means the model describes the spatial correlation of the data. `test = ` draws
+the same plot for another test of the tree.
+
+```{r plot-correlogram, fig.width = 7, fig.height = 4.2}
+plot(fit, type = "correlogram")
+```
+
+## Reproducibility
+
+The same data, arguments and `seed` (default 1) give the same result, whatever the number
+of cores (`n_cores`). SigDoTS does not change the random-number state of your session.
+
+## When a part of the tree cannot be tested
+
+To estimate `eta` and `ell`, SigDoTS needs enough pairs of spots from the same candidate domain
+at several distances: at least 4 distance bins with at least 200 such pairs each. A part
+of the tree with very few spots (on a regular grid, fewer than about 80) does not have
+them. SigDoTS then leaves that part untested, still tests the rest of the tree, warns at
+the end, marks the part `[!] NOT TESTED` in the tree, and gives its spots no domain
+(`NA` in `domains()`). Using fewer candidate domains (a smaller `K0`) makes the parts larger.
+
+## Next
+
+* `vignette("own-data", package = "SigDoTS")`: preparing your own data and choosing the
+  options.
+* `vignette("faq", package = "SigDoTS")`: every error and warning, and the questions users
+  ask most.
+* `vignette("how-it-works", package = "SigDoTS")`: what SigDoTS computes, step by step.

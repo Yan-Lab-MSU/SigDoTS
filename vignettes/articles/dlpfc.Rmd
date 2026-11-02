@@ -1,0 +1,236 @@
+---
+title: "Real data application: human brain cortex (Visium)"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dpi = 96, out.width = "85%", fig.align = "center",
+                      dev = "ragg_png", dev.args = list(bg = "white"))
+res <- readRDS("dlpfc_results.rds")
+library(SigDoTS)
+library(ggplot2)
+n_dom <- length(res$fit_all$domain_nodes)
+tt <- summary(res$fit_all)$tests
+eta_all <- res$fit_all$tests$eta
+```
+
+This tutorial runs SigDoTS on a public 10x Genomics Visium section of human dorsolateral
+prefrontal cortex (DLPFC), sample 151673 of Maynard et al. (2021). The cortex is organised in
+layers, and this dataset comes with every spot labelled by hand with its layer (L1 to L6 and
+white matter), so the result of SigDoTS can be compared with an answer that is known
+independently. The section has `r format(res$n_spots, big.mark = ",")` spots over tissue.
+
+The three runs below took `r sprintf("%.0f, %.0f and %.0f seconds", res$timings[1], res$timings[2], res$timings[3])`
+on `r res$n_cores` cores (`r res$date`, SigDoTS `r res$versions[["SigDoTS"]]`, R `r sub("R version ([0-9.]+).*", "\\1", res$versions[["R"]])`, BANKSY `r res$versions[["Banksy"]]`).
+To keep this page quick to build, the code is shown as it was run and the results are loaded
+from a saved file; running the code yourself gives the same results (same data, arguments and
+seed).
+
+As in the SigDoTS paper, the candidate domains come from BANKSY, a domain-detection method that
+uses each spot's neighbourhood as well as its own expression, so that its candidate domains are
+spatially coherent. The package's built-in k-means does not use positions and, on real tissue, gives
+interleaved candidate domains that no merging can turn into layers (`cluster_method = "banksy"` below; the
+Banksy package needs R 4.4 or later).
+
+## The data
+
+The section is available as a `SpatialExperiment` object from the Bioconductor package
+STexampleData; the object holds the counts, the spot positions and the layer labels.
+
+```{r load, eval = FALSE}
+# install.packages("BiocManager")
+# BiocManager::install(c("STexampleData", "scuttle", "scran", "Banksy", "SingleCellExperiment"))
+library(SigDoTS)
+library(SpatialExperiment)
+library(STexampleData)
+library(scuttle)
+library(scran)
+
+spe <- Visium_humanDLPFC()          # downloads once (about 100 MB), then cached
+spe
+#> class: SpatialExperiment
+#> dim: 33538 4992
+#> ...
+table(colData(spe)$ground_truth, useNA = "ifany")
+```
+
+```{r layers-table, echo = FALSE}
+table(layer = res$layer, useNA = "ifany")
+```
+
+```{r layers-map, echo = FALSE, fig.width = 6, fig.height = 5.5, fig.alt = "The spots of section 151673 coloured by their manually annotated cortical layer"}
+lay <- data.frame(x = res$coords[, 1], y = res$coords[, 2], layer = res$layer)
+ggplot(lay, aes(x, y, colour = layer)) + geom_point(size = 0.7) + coord_equal() +
+  scale_colour_manual(values = c("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7"),
+                      na.value = "grey80", name = "Manual layer") +
+  theme_void() + ggtitle("Section 151673: manual layer annotation") +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Preparing the data
+
+Four lines: keep the spots over tissue, drop genes with almost no counts, log-normalise, and
+choose the 2,000 most variable genes. Any other normalisation and gene selection works as well.
+
+```{r prepare, eval = FALSE}
+spe <- spe[, colData(spe)$in_tissue == 1]            # 3,639 spots over tissue
+spe <- spe[Matrix::rowSums(counts(spe)) >= 10, ]      # genes with at least 10 counts in all
+spe <- logNormCounts(spe)                             # adds the "logcounts" assay
+hvg <- getTopHVGs(modelGeneVar(spe), n = 2000)        # the 2,000 most variable genes
+```
+
+The positions are pixel coordinates in the tissue image, where rows count downwards. Flipping
+the row axis makes the plots below appear the same way up as the image; the test does not
+care, because it uses only distances between spots.
+
+```{r coords, eval = FALSE}
+coords <- spatialCoords(spe)
+coords_plot <- cbind(x = coords[, "pxl_col_in_fullres"], y = -coords[, "pxl_row_in_fullres"])
+```
+
+## The whole section
+
+The layers are the domains one expects, so `K0`, the number of candidate domains, is set above
+the seven labels. With `K0 = 10`, BANKSY divides the section into 10 candidate domains (and every
+simulated dataset into as many candidate domains as the part of the tree being tested has), and SigDoTS
+decides which of them to merge.
+
+```{r run-all, eval = FALSE}
+fit <- sigdots(spe, coords = coords_plot, K0 = 10, genes = hvg, cluster_method = "banksy", n_cores = 10)
+fit
+```
+
+```{r print-all, echo = FALSE}
+print(res$fit_all)
+```
+
+SigDoTS keeps all `r n_dom` candidate domains: every one of the `r nrow(tt)` splits is
+significant, with the observed statistic below that of every simulated single-domain dataset.
+The map of the domains next to the manual layers:
+
+```{r map-all, echo = FALSE, fig.width = 6, fig.height = 5.5, fig.alt = "The domains SigDoTS found in section 151673"}
+plot(res$fit_all)
+```
+
+How the domains relate to the layers (spots per domain and layer):
+
+```{r table-all, echo = FALSE}
+table(domain = domains(res$fit_all)$domain, layer = res$layer, useNA = "ifany")
+```
+
+The adjusted Rand index between the domains and the manual layers is
+`r sprintf("%.2f", res$ari_whole_section)` (1 would be a perfect match, 0 no better than
+chance). Two things explain the distance from 1. BANKSY's ten candidate domains cut the seven layers
+finely: Layer 1 into two bands (domains 1 and 2), Layers 2 and 3 into two (6 and 7), the white
+matter into three (8, 9 and 10), and the candidate domains covering Layers 4 to 6 (3, 4 and 5) each
+straddle two layers. SigDoTS can only merge the candidate domains, so a domain follows BANKSY's
+boundaries, and two layers that one candidate domain straddles cannot be separated. And SigDoTS
+kept the within-layer bands: at each of those splits the two sides differ in mean expression
+more than spatially correlated noise within one domain produces. Whether an outer and an
+inner band of Layer 1, or white matter next to the cortex and deep white matter, are
+different domains is a question for the biologist; the test reports that their expression
+differs. With fewer candidate domains (`K0 = 7`), they would follow the layers more coarsely.
+
+The tests, from the top of the tree:
+
+```{r tests-all, echo = FALSE}
+tt
+```
+
+```{r tree-all, echo = FALSE, fig.width = 9, fig.height = 5, out.width = "100%", fig.alt = "The split tree of the whole-section run"}
+plot(res$fit_all, type = "tree")
+```
+
+The spatial correlation that SigDoTS estimated for the single-domain model at the first test
+(`plot(fit, type = "correlogram")`): `eta` is the share of the noise variance that is
+spatially correlated, `ell` how far that correlation reaches, in units of the distance
+between neighbouring spots. Here `eta` is `r sprintf("%.2f", eta_all[1])` (between
+`r sprintf("%.2f", min(eta_all))` and `r sprintf("%.2f", max(eta_all))` over the nine tests):
+once the candidate domains' means are removed, the expression of neighbouring spots is only
+weakly correlated, so the simulated single-domain data are close to independent noise around
+a common mean.
+
+```{r correlogram-all, echo = FALSE, fig.width = 7, fig.height = 4.2, fig.alt = "Observed and fitted within-group correlation by distance, first test"}
+plot(res$fit_all, type = "correlogram")
+```
+
+## A region of interest: Layer 6
+
+SigDoTS can be run on any subset of spots. In the SigDoTS paper, Layer 6 of this and three
+neighbouring sections was divided into three candidate domains, and SigDoTS retained a
+superficial and a deep part of Layer 6, which earlier work had reported as molecularly
+distinct. The same question here, on this section alone, with `K0 = 3`:
+
+```{r run-l6, eval = FALSE}
+l6 <- which(colData(spe)$ground_truth == "Layer6")
+fit_l6 <- sigdots(spe[, l6], coords = coords_plot[l6, ], K0 = 3, genes = hvg, cluster_method = "banksy", n_cores = 10)
+fit_l6
+```
+
+```{r print-l6, echo = FALSE}
+print(res$fit_l6)
+```
+
+On this section SigDoTS keeps all three candidate domains of Layer 6: three bands from the
+Layer 5 side to the white matter, each with its own mean expression. The paper, with four
+sections and BANKSY's own candidate domains, reported two (superficial and deep).
+
+```{r map-l6, echo = FALSE, fig.width = 6, fig.height = 5, fig.alt = "Domains found within Layer 6"}
+plot(res$fit_l6)
+```
+
+## A region that should not split: Layer 3
+
+Layer 3 is the paper's negative control: the layer is anatomically one unit, and a method
+that reports substructure in it would be reading noise. Three candidate domains, and the test:
+
+```{r run-l3, eval = FALSE}
+l3 <- which(colData(spe)$ground_truth == "Layer3")
+fit_l3 <- sigdots(spe[, l3], coords = coords_plot[l3, ], K0 = 3, genes = hvg, cluster_method = "banksy", n_cores = 10)
+fit_l3
+```
+
+```{r print-l3, echo = FALSE}
+print(res$fit_l3)
+```
+
+The split of Layer 3 is not significant (p = `r sprintf("%.2f", summary(res$fit_l3)$tests$p_value[1])`:
+`r res$fit_l3$tests$clearer[1]` of the `r summary(res$fit_l3)$tests$null_used[1]` simulated single-domain
+datasets split at least as clearly), so SigDoTS reports Layer 3 as one domain and does not test
+the lower split. BANKSY's three candidate domains within the layer are kept in the output as
+candidate domains only:
+
+```{r map-l3, echo = FALSE, fig.width = 6, fig.height = 5, fig.alt = "Layer 3 with its candidate domains and the final domains"}
+plot(res$fit_l3, type = "candidates")
+```
+
+## Two details in the output
+
+`summary(fit)` for the whole section lists, after the tests, the parts of the tree whose spots
+fell into separate pieces on the 6-nearest-neighbour graph: Layer 1 is cut by a fold of the
+section into pieces of 242, 49 and 14 spots, and a few single spots at the boundaries between candidate
+domains have all their neighbours in other candidate domains. SigDoTS joins such pieces by their closest spots before
+building the tree, so that every simulated dataset has a connected tree; nothing else changes.
+
+```{r summary-all, echo = FALSE}
+summary(res$fit_all)
+```
+
+The number of simulated datasets differs between tests (`null_used`): a test deep in the tree
+has a small level, and SigDoTS simulates as many datasets as that level needs, stopping as soon
+as the decision is certain.
+
+## Writing the result back
+
+`add_domains()` puts the domain of every spot into the object, next to the other per-spot
+information, for whatever you do next:
+
+```{r write-back, eval = FALSE}
+spe <- add_domains(spe, fit)
+head(colData(spe)[, c("ground_truth", "sigdots_domain", "sigdots_candidate_domain")])
+```
+
+## Versions used for this page
+
+```{r versions, echo = FALSE}
+res$versions
+```
