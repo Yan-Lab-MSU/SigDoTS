@@ -14,10 +14,12 @@ home:
 # The navbar has no search box, no version and no right-hand items; the footer is empty; the
 # logo is shown in the home page's right-hand column instead of floating in the text. These are
 # set in pkgdown/extra.css (hidden by CSS where pkgdown 2.0.7 has no setting), in
-# pkgdown/sidebar.html and in the two blank footer components below.
+# pkgdown/sidebar.html and in the two blank footer components below. No Changelog tab while
+# there is only the first version (NEWS.md stays in the package; add `news` back to `left`
+# with the next version).
 navbar:
   structure:
-    left: [intro, tutorials, method, reference, news]
+    left: [intro, tutorials, method, reference]
     right: []
   components:
     tutorials:
