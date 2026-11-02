@@ -15,7 +15,9 @@ functions. The same manual as a PDF: [SigDoTS-manual.pdf](../SigDoTS-manual.pdf)
 # lists the functions. Every "$" is written as the HTML code for "$": pandoc reads this HTML
 # as Markdown, and two "$" in one paragraph, as in domains(fit)$spot[domains(fit)$domain == k],
 # became a formula with the dollar signs removed (found on the GitHub-built site, 2026-11-02).
-topics <- c("SigDoTS-package" = "The SigDoTS package", sigdots = "sigdots()",
+# The package's overview page (?SigDoTS) is left out: it repeats the home page, and its
+# authors and links come from DESCRIPTION (left out 2026-11-02).
+topics <- c(sigdots = "sigdots()",
             sigdots_control = "sigdots_control()", sigdots_prepare = "sigdots_prepare()",
             summary.sigdots = "print() and summary()", domains = "domains()",
             add_domains = "add_domains()", plot.sigdots = "plot()",
@@ -32,7 +34,7 @@ for (nm in names(topics)) {
     tools::Rd2HTML(db[[paste0(nm, ".Rd")]], out = f, package = c("SigDoTS", version),
                    standalone = FALSE, no_links = TRUE)))))
   h <- paste(readLines(f, encoding = "UTF-8"), collapse = "\n")
-  prefix <- if (nm == "SigDoTS-package") "" else sprintf("<code>%s</code>: ", topics[[nm]])
+  prefix <- sprintf("<code>%s</code>: ", topics[[nm]])
   h <- sub("<h2 id='[^']*'>", sprintf("<h2 id='%s'>%s", gsub(".", "-", nm, fixed = TRUE), prefix), h)
   h <- gsub("<(/?)h3>", "<\\1h4>", h)
   h <- gsub("$", "&#36;", h, fixed = TRUE)

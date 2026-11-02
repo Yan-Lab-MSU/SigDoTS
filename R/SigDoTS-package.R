@@ -27,10 +27,6 @@
 #' method step by step). The website, with a real-data application, is at
 #' <https://yan-lab-msu.github.io/SigDoTS/>.
 #'
-#' @section How to cite:
-#' Wang H, Cao F, Shen H, Liu Y, Yan G (2026). Statistical significance testing for spatial
-#' domain detection in spatial transcriptomics. Manuscript.
-#'
 #' @keywords internal
 #' @importFrom stats dist median prcomp rnorm setNames
 #' @importFrom Matrix sparseMatrix
