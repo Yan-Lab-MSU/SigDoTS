@@ -9,4 +9,4 @@
 ^vignettes/articles$
 ^\.github$
 ^LICENSE\.md$
-^man/figures/readme_header\.png$
+^man/figures$
