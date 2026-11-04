@@ -1,33 +1,20 @@
-# SigDoTS
+![SigDoTS: statistical significance testing for domain detection in
+spatial transcriptomics](reference/figures/readme_header.png)
 
-**Statistical significance testing for domain detection in spatial
-transcriptomics.**
+Domain-detection methods divide a tissue into as many domains as they
+are asked for. SigDoTS tests which of these domains the data support:
 
-Domain-detection methods (BANKSY, BayesSpace, Seurat/Scanpy clustering,
-…) divide a tissue section into spatial domains, but the number of
-domains comes from a parameter, not from a test: the same tissue can be
-cut into 3, 5 or 8 domains depending on the setting, and some of the
-cuts only separate variation that exists inside one domain. SigDoTS
-tests the cuts. Starting from an over-segmentation (more candidate
-domains than you expect), it arranges the candidate domains in a tree by
-spatial adjacency and expression similarity and tests the splits from
-the top of the tree down. Each test compares how clearly the two sides
-of a split separate with how clearly the same clustering separates data
-simulated from a *single-domain* model, which keeps the gene-gene
-covariance and the spatial correlation of the noise estimated from the
-data. A split is kept only when it is significant, with the family-wise
-error rate controlled over the whole tree; the parts that are not split
-further are the domains.
+- It starts from more candidate domains than you expect.
+- It arranges them in a tree and tests each split against a
+  single-domain model.
+- It keeps a split only if it is significant, with error control over
+  the whole tree.
 
 ![The three steps of SigDoTS: initial candidate domains, a spatially
 constrained hierarchy, and tests from the root
-downward](reference/figures/workflow_steps.png)
+downward](reference/figures/workflow_steps.svg)
 
-*The three steps of SigDoTS (Figure 1c of the paper): a domain-detection
-pipeline gives `K0` initial candidate domains; spatially adjacent,
-expression-similar candidates are merged into a hierarchy; the splits
-are tested from the root downward, and a branch stops at the first split
-that is not significant.*
+*The three steps of SigDoTS (Figure 1c of the paper).*
 
 ## Key features
 
@@ -79,18 +66,10 @@ install.packages(c("GpGp", "fields", "igraph", "RANN", "ggplot2"))
 install.packages("path/to/SigDoTS_0.2.5.8.tar.gz", repos = NULL, type = "source")
 ```
 
-Installation time, measured on 2026-10-16 on a Linux computer that
-already had R 4.3.2 and the CRAN packages above except GpGp: 36 seconds
-for GpGp (downloaded and compiled from CRAN) and 5 seconds for SigDoTS.
-A computer without igraph, RANN and ggplot2 needs a few minutes more: in
-clean Linux containers (2026-11-01; R 4.4.2 and R 4.6.1, empty package
-library, binary packages from Posit Package Manager) the line above took
-3 to 7 minutes, and SigDoTS 7 to 10 seconds. SigDoTS itself contains no
-compiled code. GpGp does, but on Windows and macOS
-[`install.packages()`](https://rdrr.io/r/utils/install.packages.html)
-normally installs a ready-made binary of it from CRAN, so no compiler is
-needed; only if R insists on compiling it from source are Rtools
-(Windows) or the Xcode command-line tools (macOS) required.
+On a new computer, installing the dependencies takes a few minutes;
+SigDoTS itself installs in seconds and contains no compiled code. GpGp
+does, but on Windows and macOS CRAN provides a ready-made binary of it,
+so no compiler is needed.
 
 On Linux, igraph needs the GLPK library of the operating system. If
 [`library(SigDoTS)`](https://github.com/Yan-Lab-MSU/SigDoTS) stops with
@@ -128,14 +107,12 @@ grid, 200 genes, three true domains of 300 spots each.
 library(SigDoTS)
 dim(sigdots_example$x)          # spots x genes
 #> [1] 900 200
-time <- system.time(
-  fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
-)
+fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [10 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]
 #>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
 #>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [7 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]
 fit
 #> SigDoTS: 900 spots, 200 genes
 #> Number of domains: 3   (spots per domain: 300, 300, 300)
@@ -154,9 +131,6 @@ fit
 #> Use summary() for the tests.
 ```
 
-Run time of this demo: 22 seconds on one core of an AMD EPYC 9654
-(Linux). It also ran on a macOS laptop (time not measured).
-
 The three domains match the three true regions:
 
 ``` r
@@ -174,14 +148,14 @@ table(domain = domains(fit)$domain, true_region = sigdots_example$region)
 plot(fit)
 ```
 
-![](reference/figures/README-domains-plot-1.png)
+![](reference/figures/README-domains-plot-1.svg)
 
 ``` r
 
 plot(fit, type = "tree")
 ```
 
-![](reference/figures/README-tree-plot-1.png)
+![](reference/figures/README-tree-plot-1.svg)
 
 `summary(fit)` adds a table of the tests (statistic, number of simulated
 datasets, p-value, level, decision). The [Getting
@@ -215,8 +189,8 @@ data](https://yan-lab-msu.github.io/SigDoTS/articles/own-data.html).
 - [Real data
   application](https://yan-lab-msu.github.io/SigDoTS/articles/dlpfc.html):
   a public Visium section of human brain cortex with manually labelled
-  layers, from download to the domains, including two regions of
-  interest.
+  layers, from download to the domains, and one layer analysed on its
+  own.
 - [Using SigDoTS on your own
   data](https://yan-lab-msu.github.io/SigDoTS/articles/own-data.html):
   the five input forms (Seurat, SpatialExperiment, Scanpy file, counts,
@@ -281,13 +255,6 @@ approximation: the exact computation at 50,176 spots took 12 hours and
     uses the level `alpha * (m - 1) / (n - 1)`.
 4.  **Domains.** A part is split only when its test is significant;
     otherwise it is a domain.
-
-## Reproducing the paper
-
-The code of the simulation study and of the real-data analyses, and the
-processed data, will be in a separate repository
-(`Yan-Lab-MSU/SigDoTS_source`, to be published with the paper). The
-DLPFC Visium data are available through the spatialLIBD package.
 
 ## Citation
 

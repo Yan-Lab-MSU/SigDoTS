@@ -7,11 +7,11 @@ with every spot labelled by hand with its layer (L1 to L6 and white
 matter), so the result of SigDoTS can be compared with an answer that is
 known independently. The section has 3,639 spots over tissue.
 
-The three runs below took 442, 26 and 16 seconds on 10 cores
-(2026-11-01, SigDoTS 0.2.5.8, R 4.5.1, BANKSY 1.6.0). To keep this page
-quick to build, the code is shown as it was run and the results are
-loaded from a saved file; running the code yourself gives the same
-results (same data, arguments and seed).
+The two runs below took 442 and 16 seconds on 10 cores (2026-11-01,
+SigDoTS 0.2.5.8, R 4.5.1, BANKSY 1.6.0). To keep this page quick to
+build, the code is shown as it was run and the results are loaded from a
+saved file; running the code yourself gives the same results (same data,
+arguments and seed).
 
 As in the SigDoTS paper, the candidate domains come from BANKSY, a
 domain-detection method that uses each spot’s neighbourhood as well as
@@ -50,7 +50,7 @@ table(colData(spe)$ground_truth, useNA = "ifany")
     #>    273    253    989    218    673    692    513     28
 
 ![The spots of section 151673 coloured by their manually annotated
-cortical layer](dlpfc_files/figure-html/layers-map-1.png)
+cortical layer](dlpfc_files/figure-html/layers-map-1.svg)
 
 ## Preparing the data
 
@@ -72,7 +72,7 @@ With Bioconductor 3.23 (scuttle 1.22, scran 1.40),
 [`getTopHVGs()`](https://rdrr.io/pkg/scran/man/getTopHVGs.html) print
 warnings that they, or functions they use, are deprecated in favour of
 the newer package scrapper. They still work: in R 4.6.1 with these
-versions, the three runs below give the same domains.
+versions, the two runs below give the same domains.
 
 The positions are pixel coordinates in the tissue image, where rows
 count downwards. Flipping the row axis makes the plots below appear the
@@ -130,7 +130,7 @@ significant, with the observed statistic below that of every simulated
 single-domain dataset. The map of the domains next to the manual layers:
 
 ![The domains SigDoTS found in section
-151673](dlpfc_files/figure-html/map-all-1.png)
+151673](dlpfc_files/figure-html/map-all-1.svg)
 
 How the domains relate to the layers (spots per domain and layer):
 
@@ -188,7 +188,7 @@ The tests, from the top of the tree:
     #> 9    split
 
 ![The split tree of the whole-section
-run](dlpfc_files/figure-html/tree-all-1.png)
+run](dlpfc_files/figure-html/tree-all-1.svg)
 
 The spatial correlation that SigDoTS estimated for the single-domain
 model at the first test (`plot(fit, type = "correlogram")`): `eta` is
@@ -201,47 +201,14 @@ simulated single-domain data are close to independent noise around a
 common mean.
 
 ![Observed and fitted within-group correlation by distance, first
-test](dlpfc_files/figure-html/correlogram-all-1.png)
+test](dlpfc_files/figure-html/correlogram-all-1.svg)
 
-## A region of interest: Layer 6
+## A layer of interest: Layer 3
 
-SigDoTS can be run on any subset of spots. In the SigDoTS paper, Layer 6
-of this and three neighbouring sections was divided into three candidate
-domains, and SigDoTS retained a superficial and a deep part of Layer 6,
-which earlier work had reported as molecularly distinct. The same
-question here, on this section alone, with `K0 = 3`:
-
-``` r
-
-l6 <- which(colData(spe)$ground_truth == "Layer6")
-fit_l6 <- sigdots(spe[, l6], coords = coords_plot[l6, ], K0 = 3, genes = hvg, cluster_method = "banksy", n_cores = 10)
-fit_l6
-```
-
-    #> SigDoTS: 692 spots, 2000 genes
-    #> Number of domains: 3   (spots per domain: 188, 203, 301)
-    #> 
-    #> Split tree ([node] spots, candidate domains: decision):
-    #> [5] 692 spots, candidate domains 1,2,3: split
-    #> ├── [3] 188 spots, candidate domain 3   => DOMAIN 1
-    #> └── [4] 504 spots, candidate domains 1,2: split
-    #>     ├── [1] 203 spots, candidate domain 1   => DOMAIN 2
-    #>     └── [2] 301 spots, candidate domain 2   => DOMAIN 3
-    #> 
-    #> Use summary() for the tests.
-
-On this section SigDoTS keeps all three candidate domains of Layer 6:
-three bands from the Layer 5 side to the white matter, each with its own
-mean expression. The paper, with four sections and BANKSY’s own
-candidate domains, reported two (superficial and deep).
-
-![Domains found within Layer 6](dlpfc_files/figure-html/map-l6-1.png)
-
-## A region that should not split: Layer 3
-
-Layer 3 is the paper’s negative control: the layer is anatomically one
-unit, and a method that reports substructure in it would be reading
-noise. Three candidate domains, and the test:
+SigDoTS can be run on any subset of spots, for example the spots of one
+layer. Layer 3 is anatomically one unit; BANKSY divides it into three
+candidate domains, and SigDoTS tests whether the data support splitting
+it:
 
 ``` r
 
@@ -264,12 +231,12 @@ fit_l3
 
 The split of Layer 3 is not significant (p = 0.64: 6 of the 10 simulated
 single-domain datasets split at least as clearly), so SigDoTS reports
-Layer 3 as one domain and does not test the lower split. BANKSY’s three
-candidate domains within the layer are kept in the output as candidate
-domains only:
+Layer 3 as one domain and does not test the lower split. On the left,
+BANKSY’s three candidate domains; on the right, the one domain that
+SigDoTS reports:
 
-![Layer 3 with its candidate domains and the final
-domains](dlpfc_files/figure-html/map-l3-1.png)
+![Layer 3: BANKSY's three candidate domains (left) and the one domain
+SigDoTS reports (right)](dlpfc_files/figure-html/map-l3-1.svg)
 
 ## Two details in the output
 

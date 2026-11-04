@@ -39,7 +39,6 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/SigDoTS.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
@@ -65,18 +64,18 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="sigdots-">SigDoTS <a class="anchor" aria-label="anchor" href="#sigdots-"></a>
-</h1>
-</div>
-<p><strong>Statistical significance testing for domain detection in spatial transcriptomics.</strong></p>
+  <main id="main" class="col-md-9"><p><img src="reference/figures/readme_header.png" width="100%" alt="SigDoTS: statistical significance testing for domain detection in spatial transcriptomics"></p>
 <!-- badges: start -->
 <!-- When the repository is public: the R-CMD-check badge from .github/workflows/R-CMD-check.yaml. -->
 <!-- badges: end -->
-<p>Domain-detection methods (BANKSY, BayesSpace, Seurat/Scanpy clustering, …) divide a tissue section into spatial domains, but the number of domains comes from a parameter, not from a test: the same tissue can be cut into 3, 5 or 8 domains depending on the setting, and some of the cuts only separate variation that exists inside one domain. SigDoTS tests the cuts. Starting from an over-segmentation (more candidate domains than you expect), it arranges the candidate domains in a tree by spatial adjacency and expression similarity and tests the splits from the top of the tree down. Each test compares how clearly the two sides of a split separate with how clearly the same clustering separates data simulated from a <em>single-domain</em> model, which keeps the gene-gene covariance and the spatial correlation of the noise estimated from the data. A split is kept only when it is significant, with the family-wise error rate controlled over the whole tree; the parts that are not split further are the domains.</p>
-<p><img src="reference/figures/workflow_steps.png" alt="The three steps of SigDoTS: initial candidate domains, a spatially constrained hierarchy, and tests from the root downward" width="100%"></p>
-<p><em>The three steps of SigDoTS (Figure 1c of the paper): a domain-detection pipeline gives <code>K0</code> initial candidate domains; spatially adjacent, expression-similar candidates are merged into a hierarchy; the splits are tested from the root downward, and a branch stops at the first split that is not significant.</em></p>
+<p>Domain-detection methods divide a tissue into as many domains as they are asked for. SigDoTS tests which of these domains the data support:</p>
+<ul>
+<li>It starts from more candidate domains than you expect.</li>
+<li>It arranges them in a tree and tests each split against a single-domain model.</li>
+<li>It keeps a split only if it is significant, with error control over the whole tree.</li>
+</ul>
+<p><img src="reference/figures/workflow_steps.svg" alt="The three steps of SigDoTS: initial candidate domains, a spatially constrained hierarchy, and tests from the root downward" width="100%"></p>
+<p><em>The three steps of SigDoTS (Figure 1c of the paper).</em></p>
 <div class="section level2">
 <h2 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h2>
@@ -108,7 +107,7 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GpGp"</span>, <span class="st">"fields"</span>, <span class="st">"igraph"</span>, <span class="st">"RANN"</span>, <span class="st">"ggplot2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"path/to/SigDoTS_0.2.5.8.tar.gz"</span>, repos <span class="op">=</span> <span class="cn">NULL</span>, type <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre></div>
-<p>Installation time, measured on 2026-10-16 on a Linux computer that already had R 4.3.2 and the CRAN packages above except GpGp: 36 seconds for GpGp (downloaded and compiled from CRAN) and 5 seconds for SigDoTS. A computer without igraph, RANN and ggplot2 needs a few minutes more: in clean Linux containers (2026-11-01; R 4.4.2 and R 4.6.1, empty package library, binary packages from Posit Package Manager) the line above took 3 to 7 minutes, and SigDoTS 7 to 10 seconds. SigDoTS itself contains no compiled code. GpGp does, but on Windows and macOS <code><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages()</a></code> normally installs a ready-made binary of it from CRAN, so no compiler is needed; only if R insists on compiling it from source are Rtools (Windows) or the Xcode command-line tools (macOS) required.</p>
+<p>On a new computer, installing the dependencies takes a few minutes; SigDoTS itself installs in seconds and contains no compiled code. GpGp does, but on Windows and macOS CRAN provides a ready-made binary of it, so no compiler is needed.</p>
 <p>On Linux, igraph needs the GLPK library of the operating system. If <code><a href="https://github.com/Yan-Lab-MSU/SigDoTS" class="external-link">library(SigDoTS)</a></code> stops with “libglpk.so.40: cannot open shared object file”, install the system libraries igraph uses and then igraph again, for example on Ubuntu or Debian:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get install libglpk-dev libgmp-dev libxml2-dev</span></code></pre></div>
 <p>(on Fedora: <code>sudo dnf install glpk-devel gmp-devel libxml2-devel</code>).</p>
@@ -126,14 +125,12 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Yan-Lab-MSU/SigDoTS" class="external-link">SigDoTS</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>          <span class="co"># spots x genes</span></span>
 <span><span class="co">#&gt; [1] 900 200</span></span>
-<span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/sigdots.html">sigdots</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/sigdots.html">sigdots</a></span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span></span>
-<span><span class="co">#&gt;   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [10 s]</span></span>
+<span><span class="co">#&gt;   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]</span></span>
 <span><span class="co">#&gt;   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]</span></span>
 <span><span class="co">#&gt;   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [7 s]</span></span>
-<span><span class="co">#&gt;   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]</span></span>
+<span><span class="co">#&gt;   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]</span></span>
 <span><span class="va">fit</span></span>
 <span><span class="co">#&gt; SigDoTS: 900 spots, 200 genes</span></span>
 <span><span class="co">#&gt; Number of domains: 3   (spots per domain: 300, 300, 300)</span></span>
@@ -150,7 +147,6 @@
 <span><span class="co">#&gt;         └── candidate domain 5  197 spots</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Use summary() for the tests.</span></span></code></pre></div>
-<p>Run time of this demo: 22 seconds on one core of an AMD EPYC 9654 (Linux). It also ran on a macOS laptop (time not measured).</p>
 <p>The three domains match the three true regions:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="fu"><a href="reference/domains.html">domains</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">domain</span>, true_region <span class="op">=</span> <span class="va">sigdots_example</span><span class="op">$</span><span class="va">region</span><span class="op">)</span></span>
@@ -161,10 +157,10 @@
 <span><span class="co">#&gt;      3 300   0   0</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-domains-plot-1.png" width="70%"></p>
+<p><img src="reference/figures/README-domains-plot-1.svg" width="70%"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"tree"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-tree-plot-1.png" width="90%"></p>
+<p><img src="reference/figures/README-tree-plot-1.svg" width="90%"></p>
 <p><code>summary(fit)</code> adds a table of the tests (statistic, number of simulated datasets, p-value, level, decision). The <a href="https://yan-lab-msu.github.io/SigDoTS/articles/SigDoTS.html" class="external-link">Getting started</a> tutorial explains every line of this output.</p>
 </div>
 <div class="section level2">
@@ -208,7 +204,7 @@
 <li>
 <a href="https://yan-lab-msu.github.io/SigDoTS/articles/SigDoTS.html" class="external-link">Getting started</a>: the demo above, line by line.</li>
 <li>
-<a href="https://yan-lab-msu.github.io/SigDoTS/articles/dlpfc.html" class="external-link">Real data application</a>: a public Visium section of human brain cortex with manually labelled layers, from download to the domains, including two regions of interest.</li>
+<a href="https://yan-lab-msu.github.io/SigDoTS/articles/dlpfc.html" class="external-link">Real data application</a>: a public Visium section of human brain cortex with manually labelled layers, from download to the domains, and one layer analysed on its own.</li>
 <li>
 <a href="https://yan-lab-msu.github.io/SigDoTS/articles/own-data.html" class="external-link">Using SigDoTS on your own data</a>: the five input forms (Seurat, SpatialExperiment, Scanpy file, counts, matrices), the choice of the candidate domains, exact or approximate spatial computation, run time and memory.</li>
 <li>
@@ -278,11 +274,6 @@
 </ol>
 </div>
 <div class="section level2">
-<h2 id="reproducing-the-paper">Reproducing the paper<a class="anchor" aria-label="anchor" href="#reproducing-the-paper"></a>
-</h2>
-<p>The code of the simulation study and of the real-data analyses, and the processed data, will be in a separate repository (<code>Yan-Lab-MSU/SigDoTS_source</code>, to be published with the paper). The DLPFC Visium data are available through the spatialLIBD package.</p>
-</div>
-<div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>Manuscript in preparation. Until it is published, please cite the package: <code>citation("SigDoTS")</code>.</p>
@@ -292,12 +283,8 @@
 </h2>
 <p>SigDoTS is released under the MIT licence (<a href="LICENSE.html">LICENSE.md</a>). Questions and bug reports: open an issue on GitHub, or write to the maintainer (<code>maintainer("SigDoTS")</code>).</p>
 </div>
-</div>
-  </main><aside class="col-md-3"><!-- The home page's right-hand column: only the logo, as wide as the column (pkgdown/extra.css). --><div class="sigdots-logo">
-  <img src="logo.png" alt="SigDoTS logo">
-</div>
 
-  </aside>
+  </main><aside class="col-md-3"></aside>
 </div>
 
 

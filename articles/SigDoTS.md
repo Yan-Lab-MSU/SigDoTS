@@ -58,9 +58,9 @@ domains to merge. Here we use `K0 = 5` for three true domains.
 
 fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [8 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [14 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [3 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [10 s]
 #>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
 ```
 
@@ -210,7 +210,7 @@ domains:
 plot(fit)
 ```
 
-![](SigDoTS_files/figure-html/plot-domains-1.png)
+![](SigDoTS_files/figure-html/plot-domains-1.svg)
 
 The candidate domains, with the boundaries of the final domains, showing
 which candidate domains were merged:
@@ -220,7 +220,7 @@ which candidate domains were merged:
 plot(fit, type = "candidates")
 ```
 
-![](SigDoTS_files/figure-html/plot-candidates-1.png)
+![](SigDoTS_files/figure-html/plot-candidates-1.svg)
 
 The split tree, with each test’s decision, p-value and level:
 
@@ -229,7 +229,7 @@ The split tree, with each test’s decision, p-value and level:
 plot(fit, type = "tree")
 ```
 
-![](SigDoTS_files/figure-html/plot-tree-1.png)
+![](SigDoTS_files/figure-html/plot-tree-1.svg)
 
 The spatial correlation of the noise, as SigDoTS estimated it at the
 first test for the single-domain model: the points are the correlation
@@ -247,7 +247,7 @@ draws the same plot for another test of the tree.
 plot(fit, type = "correlogram")
 ```
 
-![](SigDoTS_files/figure-html/plot-correlogram-1.png)
+![](SigDoTS_files/figure-html/plot-correlogram-1.svg)
 
 ## Reproducibility
 

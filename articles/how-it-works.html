@@ -34,7 +34,6 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/SigDoTS.html">Get started</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
@@ -80,7 +79,7 @@ evaluation are in the SigDoTS paper (in preparation).</p>
 <div class="section level2">
 <h2 id="the-question">The question<a class="anchor" aria-label="anchor" href="#the-question"></a>
 </h2>
-<p><img src="figures/workflow_problems.png" class="r-plt" alt="Two problems: a domain-detection method with K0 &gt; 1 divides data with no domains into candidate domains; a naive test of the candidate domains gives p-values that are far too small" width="100%"></p>
+<p><img src="figures/workflow_problems.svg" class="r-plt" alt="Two problems: a domain-detection method with K0 &gt; 1 divides data with no domains into candidate domains; a naive test of the candidate domains gives p-values that are far too small" width="100%"></p>
 <p><em>Figure 1a-b of the paper. Left: data simulated with no domains at
 all, divided into two candidate domains by three domain-detection
 methods. Right: testing those two candidates as if they had been fixed
@@ -95,7 +94,7 @@ nearby spots correlated with each other. The test has to account for one
 difficulty: the two sides were found by clustering the same data, and
 clustering always finds some separation, even in data with no domains at
 all.</p>
-<p><img src="figures/workflow_steps.png" class="r-plt" alt="The three steps of SigDoTS" width="100%"></p>
+<p><img src="figures/workflow_steps.svg" class="r-plt" alt="The three steps of SigDoTS" width="100%"></p>
 <p><em>Figure 1c of the paper: the three steps described below.</em></p>
 </div>
 <div class="section level2">
@@ -125,7 +124,7 @@ branches.</p>
 <div class="section level2">
 <h2 id="step-3-testing-a-split">Step 3: testing a split<a class="anchor" aria-label="anchor" href="#step-3-testing-a-split"></a>
 </h2>
-<p><img src="figures/workflow_node_test.png" class="r-plt" alt="The test at one node: the observed split and its cluster index; the single-domain model fitted to the node; simulated datasets, each clustered the same way; the null distribution of the cluster index and the observed value" width="100%"></p>
+<p><img src="figures/workflow_node_test.svg" class="r-plt" alt="The test at one node: the observed split and its cluster index; the single-domain model fitted to the node; simulated datasets, each clustered the same way; the null distribution of the cluster index and the observed value" width="100%"></p>
 <p><em>The test at one node (the inset of Figure 1 of the paper). Top:
 the candidate split at the node and its cluster index. Bottom: datasets
 simulated from the single-domain model fitted to the node, each divided

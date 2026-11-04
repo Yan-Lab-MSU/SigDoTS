@@ -9,7 +9,7 @@ SigDoTS paper (in preparation).
 
 ![Two problems: a domain-detection method with K0 \> 1 divides data with
 no domains into candidate domains; a naive test of the candidate domains
-gives p-values that are far too small](figures/workflow_problems.png)
+gives p-values that are far too small](figures/workflow_problems.svg)
 
 *Figure 1a-b of the paper. Left: data simulated with no domains at all,
 divided into two candidate domains by three domain-detection methods.
@@ -25,7 +25,7 @@ correlated with each other. The test has to account for one difficulty:
 the two sides were found by clustering the same data, and clustering
 always finds some separation, even in data with no domains at all.
 
-![The three steps of SigDoTS](figures/workflow_steps.png)
+![The three steps of SigDoTS](figures/workflow_steps.svg)
 
 *Figure 1c of the paper: the three steps described below.*
 
@@ -54,7 +54,7 @@ split its spots into the spots of its two branches.
 ![The test at one node: the observed split and its cluster index; the
 single-domain model fitted to the node; simulated datasets, each
 clustered the same way; the null distribution of the cluster index and
-the observed value](figures/workflow_node_test.png)
+the observed value](figures/workflow_node_test.svg)
 
 *The test at one node (the inset of Figure 1 of the paper). Top: the
 candidate split at the node and its cluster index. Bottom: datasets
