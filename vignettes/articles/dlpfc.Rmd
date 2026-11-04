@@ -4,7 +4,7 @@ title: "Real data application: human brain cortex (Visium)"
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dpi = 96, out.width = "85%", fig.align = "center",
-                      dev = "ragg_png", dev.args = list(bg = "white"))
+                      dev = "svg", dev.args = list(bg = "white"))   # vector graphics (SVG)
 res <- readRDS("dlpfc_results.rds")
 library(SigDoTS)
 library(ggplot2)
@@ -19,7 +19,7 @@ layers, and this dataset comes with every spot labelled by hand with its layer (
 white matter), so the result of SigDoTS can be compared with an answer that is known
 independently. The section has `r format(res$n_spots, big.mark = ",")` spots over tissue.
 
-The three runs below took `r sprintf("%.0f, %.0f and %.0f seconds", res$timings[1], res$timings[2], res$timings[3])`
+The two runs below took `r sprintf("%.0f and %.0f seconds", res$timings[["whole_section"]], res$timings[["layer3"]])`
 on `r res$n_cores` cores (`r res$date`, SigDoTS `r res$versions[["SigDoTS"]]`, R `r sub("R version ([0-9.]+).*", "\\1", res$versions[["R"]])`, BANKSY `r res$versions[["Banksy"]]`).
 To keep this page quick to build, the code is shown as it was run and the results are loaded
 from a saved file; running the code yourself gives the same results (same data, arguments and
@@ -80,7 +80,7 @@ hvg <- getTopHVGs(modelGeneVar(spe), n = 2000)        # the 2,000 most variable 
 
 With Bioconductor 3.23 (scuttle 1.22, scran 1.40), `logNormCounts()`, `modelGeneVar()` and
 `getTopHVGs()` print warnings that they, or functions they use, are deprecated in favour of the
-newer package scrapper. They still work: in R 4.6.1 with these versions, the three runs below
+newer package scrapper. They still work: in R 4.6.1 with these versions, the two runs below
 give the same domains.
 
 The positions are pixel coordinates in the tissue image, where rows count downwards. Flipping
@@ -158,35 +158,11 @@ a common mean.
 plot(res$fit_all, type = "correlogram")
 ```
 
-## A region of interest: Layer 6
+## A layer of interest: Layer 3
 
-SigDoTS can be run on any subset of spots. In the SigDoTS paper, Layer 6 of this and three
-neighbouring sections was divided into three candidate domains, and SigDoTS retained a
-superficial and a deep part of Layer 6, which earlier work had reported as molecularly
-distinct. The same question here, on this section alone, with `K0 = 3`:
-
-```{r run-l6, eval = FALSE}
-l6 <- which(colData(spe)$ground_truth == "Layer6")
-fit_l6 <- sigdots(spe[, l6], coords = coords_plot[l6, ], K0 = 3, genes = hvg, cluster_method = "banksy", n_cores = 10)
-fit_l6
-```
-
-```{r print-l6, echo = FALSE}
-print(res$fit_l6)
-```
-
-On this section SigDoTS keeps all three candidate domains of Layer 6: three bands from the
-Layer 5 side to the white matter, each with its own mean expression. The paper, with four
-sections and BANKSY's own candidate domains, reported two (superficial and deep).
-
-```{r map-l6, echo = FALSE, fig.width = 6, fig.height = 5, fig.alt = "Domains found within Layer 6"}
-plot(res$fit_l6)
-```
-
-## A region that should not split: Layer 3
-
-Layer 3 is the paper's negative control: the layer is anatomically one unit, and a method
-that reports substructure in it would be reading noise. Three candidate domains, and the test:
+SigDoTS can be run on any subset of spots, for example the spots of one layer. Layer 3 is
+anatomically one unit; BANKSY divides it into three candidate domains, and SigDoTS tests
+whether the data support splitting it:
 
 ```{r run-l3, eval = FALSE}
 l3 <- which(colData(spe)$ground_truth == "Layer3")
@@ -201,11 +177,19 @@ print(res$fit_l3)
 The split of Layer 3 is not significant (p = `r sprintf("%.2f", summary(res$fit_l3)$tests$p_value[1])`:
 `r res$fit_l3$tests$clearer[1]` of the `r summary(res$fit_l3)$tests$null_used[1]` simulated single-domain
 datasets split at least as clearly), so SigDoTS reports Layer 3 as one domain and does not test
-the lower split. BANKSY's three candidate domains within the layer are kept in the output as
-candidate domains only:
+the lower split. On the left, BANKSY's three candidate domains; on the right, the one domain
+that SigDoTS reports:
 
-```{r map-l3, echo = FALSE, fig.width = 6, fig.height = 5, fig.alt = "Layer 3 with its candidate domains and the final domains"}
-plot(res$fit_l3, type = "candidates")
+```{r map-l3, echo = FALSE, fig.width = 10, fig.height = 4.6, out.width = "100%", fig.alt = "Layer 3: BANKSY's three candidate domains (left) and the one domain SigDoTS reports (right)"}
+# Two panels side by side (grid only, no other package): the candidate domains and the domains.
+p_cand <- plot(res$fit_l3, type = "candidates") +
+  labs(title = sprintf("Candidate domains (%d)", length(res$fit_l3$candidate_names)), subtitle = NULL)
+p_dom <- plot(res$fit_l3) +
+  labs(title = sprintf("Final domains (%d)", length(res$fit_l3$domain_nodes)), subtitle = NULL)
+grid::grid.newpage()
+grid::pushViewport(grid::viewport(layout = grid::grid.layout(1, 2)))
+print(p_cand, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
+print(p_dom, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
 ```
 
 ## Two details in the output

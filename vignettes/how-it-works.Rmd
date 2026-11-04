@@ -7,13 +7,20 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, include = FALSE}
+# On the website (pkgdown sets IN_PKGDOWN) the figures are vector graphics (SVG); the installed
+# vignette uses the PNG versions, because the SVGs (6 MB) are left out of the package (.Rbuildignore).
+fig <- function(name) knitr::include_graphics(sprintf("figures/%s.%s", name,
+  if (identical(Sys.getenv("IN_PKGDOWN"), "true")) "svg" else "png"))
+```
+
 This page describes, step by step, what `sigdots()` computes with its default settings. The
 statistical background and the evaluation are in the SigDoTS paper (in preparation).
 
 ## The question
 
 ```{r problems, echo = FALSE, out.width = "100%", fig.alt = "Two problems: a domain-detection method with K0 > 1 divides data with no domains into candidate domains; a naive test of the candidate domains gives p-values that are far too small"}
-knitr::include_graphics("figures/workflow_problems.png")
+fig("workflow_problems")
 ```
 
 *Figure 1a-b of the paper. Left: data simulated with no domains at all, divided into two
@@ -30,7 +37,7 @@ clustering the same data, and clustering always finds some separation, even in d
 no domains at all.
 
 ```{r steps, echo = FALSE, out.width = "100%", fig.alt = "The three steps of SigDoTS"}
-knitr::include_graphics("figures/workflow_steps.png")
+fig("workflow_steps")
 ```
 
 *Figure 1c of the paper: the three steps described below.*
@@ -55,7 +62,7 @@ spots of its two branches.
 ## Step 3: testing a split
 
 ```{r node-test, echo = FALSE, out.width = "100%", fig.alt = "The test at one node: the observed split and its cluster index; the single-domain model fitted to the node; simulated datasets, each clustered the same way; the null distribution of the cluster index and the observed value"}
-knitr::include_graphics("figures/workflow_node_test.png")
+fig("workflow_node_test")
 ```
 
 *The test at one node (the inset of Figure 1 of the paper). Top: the candidate split at the node

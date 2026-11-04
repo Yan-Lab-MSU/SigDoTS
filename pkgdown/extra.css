@@ -1,14 +1,14 @@
 /* SigDoTS website. pkgdown 2.0.7 has no setting for these, so they are hidden here:
    the package version next to the name in the navbar, the search box, and the footer
-   ("Developed by ...", "Site built with pkgdown ..."). On the home page the logo that
-   pkgdown floats inside the text (from the README's <img align="right">) is hidden, and the
-   logo is shown instead in the right-hand column (pkgdown/sidebar.html), filling its width. */
+   ("Developed by ...", "Site built with pkgdown ..."). The home page is the README, whose
+   header image holds the title and the logo: the logo pkgdown would add is hidden, and the
+   text spans the full width of the page (no right-hand column; 2026-11-04). */
 .navbar small.nav-text { display: none; }
 form[role="search"] { display: none; }
 footer { display: none; }
 main img.logo { display: none; }
-.sigdots-logo { margin-top: 0.75rem; }
-.sigdots-logo img { display: block; width: 100%; height: auto; }
+.template-home aside { display: none; }
+.template-home main#main { flex: 0 0 100%; max-width: 100%; }
 
 /* The one-page reference manual (vignettes/articles/reference-manual.Rmd): R's help pages as
    rendered by tools::Rd2HTML. A rule above each function; the arguments table with the names in

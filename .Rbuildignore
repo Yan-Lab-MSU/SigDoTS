@@ -10,3 +10,4 @@
 ^\.github$
 ^LICENSE\.md$
 ^man/figures$
+^vignettes/figures/.*\.svg$
