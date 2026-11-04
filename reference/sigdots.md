@@ -618,19 +618,19 @@ plot(fit, type = "tree")
 fit2 <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5,
                 B_min = 50, B_max = 50, n_cores = 2)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [51 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [26 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [40 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [20 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [43 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [30 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [33 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [22 s]
 
 # the normal approximation of the p-value
 fit3 <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5,
                 pvalue_method = "normal_adaptive")
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [11 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [7 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [10 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [8 s]
 #>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [6 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [7 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [6 s]
 summary(fit3)
 #> SigDoTS 0.2.5.8
 #> Data:     900 spots x 200 genes
