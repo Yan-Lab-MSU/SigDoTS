@@ -6,7 +6,10 @@ output: github_document
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.path = "man/figures/README-",
-                      out.width = "70%", dev = "svg")   # vector graphics (SVG)
+                      out.width = "70%", dev = "svg",
+                      # vector graphics (SVG); a vector font, because on the HPCC the default "sans"
+                      # is a bitmap Helvetica, whose letters svg() stores as small images
+                      dev.args = list(family = "Nimbus Sans"))
 ```
 
 <img src="man/figures/readme_header.png" width="100%" alt="SigDoTS: statistical significance testing for domain detection in spatial transcriptomics" />
