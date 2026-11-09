@@ -71,6 +71,7 @@
 # Why a reached node was not tested, in words (the engine's codes are kept in `skip_reason`).
 .skip_reason_text <- c(
   spatial_fit_failed = "not tested: spatial fit",
+  null_splits_mostly_below_min_child_size = "not tested: simulated splits too small",
   below_min_node_size = "not tested: too few spots",
   below_min_child_size_observed_split = "not tested: a side too small",
   bootstrap_resolution_exceeds_cap = "not tested: B_cap too small",
@@ -107,6 +108,7 @@
       null_median = if (length(ci_null)) stats::median(ci_null) else NA_real_,
       null_used = if (isTRUE(r$tested)) as.integer(r$b_valid) else NA_integer_,
       null_max = as.integer(r$B_max_effective %||% NA_integer_),
+      null_replaced = as.integer(r$n_replaced_reps %||% NA_integer_),
       clearer = if (length(ci_null)) as.integer(sum(ci_null <= r$CI_obs)) else NA_integer_,
       p_value = r$raw_p %||% NA_real_,
       level = r$alpha_star %||% NA_real_,
@@ -133,7 +135,8 @@
   out
 }
 
-# Warnings at the end of a run: parts whose spatial parameters could not be estimated, tests that
+# Warnings at the end of a run: parts whose spatial parameters could not be estimated, parts where
+# the simulated datasets with a too-small top split outnumbered the valid ones, tests that
 # would need more than B_cap simulated datasets, and spatial ranges at the upper end of the allowed
 # range. Short: what happened, which nodes, what to do; the
 # reasons are in vignette("faq").
@@ -147,6 +150,17 @@
       "vignette(\"faq\")."),
       nrow(nofit),
       paste(sprintf("node %d (%d spots, candidate domains %s)", nofit$node, nofit$spots, nofit$candidate_domains), collapse = "; ")),
+      call. = FALSE)
+  }
+  small <- t[t$decision == "not tested: simulated splits too small", , drop = FALSE]
+  if (nrow(small)) {
+    warning(sprintf(paste0(
+      "At %d part(s) of the tree, the simulated datasets whose top split left fewer than min_child_size = %d spots on a ",
+      "side outnumbered the valid ones, so these parts were not tested and their spots have no domain: %s. See ",
+      "summary() and vignette(\"faq\")."),
+      nrow(small), res$settings$control$min_child_size,
+      paste(sprintf("node %d (%d spots, candidate domains %s; %d simulated datasets replaced)", small$node, small$spots,
+                    small$candidate_domains, small$null_replaced), collapse = "; ")),
       call. = FALSE)
   }
   capped <- t[t$skip_reason %in% "bootstrap_resolution_exceeds_cap", , drop = FALSE]

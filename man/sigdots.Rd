@@ -202,8 +202,9 @@ domain of the spot, numbered 1, 2, ... from left to right in the printed tree; \
 a spot in a part of the tree that could not be tested.}
 \item{\code{domain_nodes}}{The node numbers of the domains, in the order of their numbers.}
 \item{\code{untested_nodes}, \code{untested_spot_node}}{The node numbers of the parts that could
-not be tested because their spatial parameters could not be estimated, and, for every
-spot, the node number of the untested part it lies in (\code{NA} otherwise).}
+not be tested (their spatial parameters could not be estimated, or too many of their
+simulated datasets had a top split with a side smaller than \code{min_child_size}), and,
+for every spot, the node number of the untested part it lies in (\code{NA} otherwise).}
 \item{\code{candidate_domains}, \code{candidate_names}}{The candidate domain of every spot,
 numbered 1 to \code{K0}, and the name of each candidate domain (your own label when
 \code{candidate_labels} was given).}
@@ -219,6 +220,8 @@ spots under each node, and the candidate domains under each node.}
 the columns of \code{summary(fit)$tests} and more: \code{parent}, \code{left_spots}, \code{right_spots},
 \code{tested}, \code{skip_reason}, \code{null_median} (median statistic of the simulated datasets),
 \code{null_max} (the largest number of simulated datasets the test could have used),
+\code{null_replaced} (simulated datasets replaced because their top split left fewer than
+\code{min_child_size} spots on a side; they are not counted in \code{null_used}),
 \code{clearer} (simulated datasets that split at least as clearly as the data),
 \code{stop_reason}, \code{p_initial} and \code{refined} (normal approximation: the p-value from the
 first datasets, and whether more were simulated), \code{ell} and \code{eta} (the estimated
@@ -307,6 +310,13 @@ domain are domains without a test. A part where the spatial parameters cannot be
 everything below it, and its spots get no domain (\code{NA}); \code{sigdots()} warns. Where the
 spots of a part fall into separate pieces on the nearest-neighbour graph, the pieces are
 joined by their closest spots before the trees are built (see \code{\link[=summary.sigdots]{summary.sigdots()}}).
+\item \strong{Simulated datasets with a too-small split.} The data's split is tested only when both
+of its sides have at least \code{min_child_size} spots, so the same is asked of every
+simulated dataset: one whose top split leaves fewer spots on a side is replaced by the
+next one in seed order and is not counted, and the test still uses its number of
+simulated datasets (\code{summary()} lists how many were replaced). If the replaced ones
+outnumber the valid ones, the part is left untested together with everything below it,
+and its spots get no domain (\code{NA}); \code{sigdots()} warns.
 }
 }
 
@@ -340,6 +350,10 @@ and of 40,000 spots 29 GiB.
 \item \emph{The spatial parameters could not be estimated at ... part(s) of the tree}: a part has
 too few spots for the estimation; it is marked \verb{[!] NOT TESTED} and its spots get no
 domain (\code{NA}). A smaller \code{K0} makes the parts larger.
+\item \emph{The simulated datasets whose top split left fewer than min_child_size spots on a side
+outnumbered the valid ones}: the part is marked \verb{[!] NOT TESTED} and its spots get no
+domain (\code{NA}). This happens where the spots of a part lie in many small separate pieces;
+see \code{vignette("faq")}.
 \item \emph{The estimated spatial range ell is at the upper end of its allowed range}: the true
 range may be longer, which can make splits easier to keep; rerun with a wider \code{ell_range} in
 \code{\link[=sigdots_control]{sigdots_control()}}.
@@ -350,7 +364,8 @@ range may be longer, which can make splits easier to keep; rerun with a wider \c
 Before computing anything, \code{sigdots()} checks its input and stops with a message that names
 the argument at fault (for example, when \code{x} has as many columns as \code{coords} has rows, it
 suggests \code{t(x)}). A simulated dataset that fails also stops the run, rather than being
-dropped. Every message is explained in \code{vignette("faq")}.
+dropped (one whose top split is too small has not failed: it is replaced, as described
+above). Every message is explained in \code{vignette("faq")}.
 }
 
 \examples{

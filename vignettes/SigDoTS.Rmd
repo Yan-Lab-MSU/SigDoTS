@@ -157,6 +157,9 @@ of the tree with very few spots (on a regular grid, fewer than about 80) does no
 them. SigDoTS then leaves that part untested, still tests the rest of the tree, warns at
 the end, marks the part `[!] NOT TESTED` in the tree, and gives its spots no domain
 (`NA` in `domains()`). Using fewer candidate domains (a smaller `K0`) makes the parts larger.
+A part is also left untested when, among its simulated datasets, those whose top split leaves
+fewer than `min_child_size` spots on a side outnumber the valid ones; `vignette("faq")`
+explains when this happens.
 
 ## Next
 

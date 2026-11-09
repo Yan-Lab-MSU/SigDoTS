@@ -147,6 +147,68 @@ test_that("where the spatial parameters cannot be estimated at the top, the run 
   expect_output(print(fit), "Number of domains: 0")
 })
 
+test_that("a simulated dataset whose top split is too small is replaced by the next one, on any number of cores", {
+  skip_on_os("windows")
+  d <- make_bands(nx = 20, ny = 20)
+  # With min_child_size = 60 the lower-left test (140 spots, sides of 61 and 79) is still made, and some
+  # of its simulated datasets have a top split with a side below 60.
+  ctl <- sigdots_control(min_child_size = 60)
+  f1 <- sigdots(d$x, d$coords, K0 = 5, B_min = 10, B_max = 10, n_cores = 1, verbose = FALSE, control = ctl)
+  t1 <- f1$tests
+  i <- which(t1$tested & t1$null_replaced > 0L)
+  expect_gt(length(i), 0L)
+  i <- i[1]
+  node <- as.character(t1$node[i])
+  r <- t1$null_replaced[i]
+  # the replaced ones are not counted: the test still used its planned number, and its p-value is defined on them
+  expect_identical(t1$null_used[i], t1$null_max[i])
+  expect_length(f1$null_statistics[[node]], t1$null_used[i])
+  expect_equal(t1$p_value[i], (1 + t1$clearer[i]) / (1 + t1$null_used[i]))
+  expect_false(anyNA(domains(f1)$domain))
+  expect_output(print(summary(f1)), "Simulated datasets replaced, because their top split left fewer than 60 spots")
+  # the same result on 2 cores
+  f2 <- sigdots(d$x, d$coords, K0 = 5, B_min = 10, B_max = 10, n_cores = 2, verbose = FALSE, control = ctl)
+  expect_identical(f1$tests, f2$tests)
+  expect_identical(f1$null_statistics, f2$null_statistics)
+  # They are the simulated datasets of a run without replacement, in the same order, with the replaced
+  # ones left out: with the default min_child_size none is replaced at that test, and null_used + r
+  # simulated datasets are numbers 1 to null_used + r there.
+  n_all <- t1$null_used[i] + r
+  f0 <- sigdots(d$x, d$coords, K0 = 5, B_min = n_all, B_max = n_all, verbose = FALSE)
+  t0 <- f0$tests
+  expect_identical(t0$null_replaced[t0$node == t1$node[i]], 0L)
+  s0 <- f0$null_statistics[[node]]
+  s1 <- f1$null_statistics[[node]]
+  expect_length(s0, n_all)
+  kept <- s0 %in% s1
+  expect_identical(s0[kept], s1)
+  expect_equal(sum(!kept), r)
+})
+
+test_that("where the replaced simulated datasets outnumber the valid ones, the part is left untested and marked", {
+  d <- make_bands(nx = 20, ny = 20)
+  # With min_child_size = 120 the test on 260 spots (sides of 120 and 140) is still made, but no
+  # simulated dataset splits that evenly.
+  expect_warning(fit <- sigdots(d$x, d$coords, K0 = 5, B_min = 10, B_max = 10, verbose = FALSE,
+                                control = sigdots_control(min_child_size = 120)),
+                 "outnumbered the valid ones")
+  tt <- fit$tests
+  expect_identical(tt$decision[1], "split")
+  k <- which(tt$decision == "not tested: simulated splits too small")
+  expect_length(k, 1L)
+  expect_false(tt$tested[k])
+  expect_identical(tt$skip_reason[k], "null_splits_mostly_below_min_child_size")
+  # the test stopped as soon as more simulated datasets had been replaced than it may use
+  expect_identical(tt$null_replaced[k], tt$null_max[k] + 1L)
+  expect_true(is.na(tt$p_value[k]) && is.na(tt$null_used[k]))
+  expect_setequal(fit$untested_nodes, tt$node[k])
+  under <- fit$spot_ids[fit$spot_indices[[as.character(tt$node[k])]]]
+  expect_setequal(domains(fit)$spot[is.na(domains(fit)$domain)], under)
+  expect_output(print(fit), "[!] NOT TESTED (too many simulated datasets with a side below min_child_size)", fixed = TRUE)
+  expect_output(print(summary(fit)), "Not tested, because the simulated datasets whose top split left fewer than 120 spots")
+  expect_s3_class(plot(fit, type = "tree"), "ggplot")
+})
+
 test_that("spots that form separate pieces are joined for the tree, and the run completes", {
   d <- make_bands(nx = 20, ny = 20)
   cut <- d$coords[, 1] %in% c(10, 11)              # remove two columns: two pieces of 180 spots

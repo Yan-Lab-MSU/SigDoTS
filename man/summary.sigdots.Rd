@@ -32,9 +32,9 @@ own code.
 }
 \details{
 The printed summary has four parts: the settings (header lines), the number of domains, the
-split tree, and the tests table, followed, where they apply, by the parts that could not be
-tested, the parts whose spots fall into separate pieces, and a note when the candidate
-domains were supplied by you.
+split tree, and the tests table, followed, where they apply, by the tests in which simulated
+datasets were replaced, the parts that could not be tested, the parts whose spots fall into
+separate pieces, and a note when the candidate domains were supplied by you.
 }
 \section{The header lines}{
 
@@ -60,9 +60,10 @@ each side is tested in turn; \verb{no split} means they are not, and the part is
 \verb{=> DOMAIN k} marks a part that was not split further: it is the k-th domain, and the
 lines under it list the candidate domains it contains with their numbers of spots. A single
 candidate domain is never tested; when its parent is split, it is a domain by itself.
-\verb{[!] NOT TESTED} marks a part that could not be tested because its spatial parameters could
-not be estimated; its spots get no domain. The tree is drawn with box-drawing characters, or
-with \verb{|--} and \verb{`--} where the console cannot show them.
+\verb{[!] NOT TESTED} marks a part that could not be tested, because its spatial parameters could
+not be estimated or because too many of its simulated datasets had a top split with a side
+smaller than \code{min_child_size}; its spots get no domain. The tree is drawn with box-drawing
+characters, or with \verb{|--} and \verb{`--} where the console cannot show them.
 }
 
 \section{The tests table}{
@@ -77,7 +78,10 @@ numbers for those not tested. The columns:
 \item \code{statistic}: the split statistic of the data, between 0 and 1: the within-group sum of
 squares of the two sides of the split divided by the total sum of squares, over all genes.
 A smaller value means a clearer split;
-\item \code{null_used}: the number of simulated single-domain datasets the test used;
+\item \code{null_used}: the number of simulated single-domain datasets the test used. A simulated
+dataset whose top split leaves fewer than \code{min_child_size} spots on a side is replaced by
+a new one and is not counted here; the summary lists the tests where this happened, with
+the number replaced;
 \item \code{p_value} (printed as \code{p}): the p-value of the test. With the Monte Carlo p-value it is
 (1 + the number of simulated datasets whose statistic was at most the observed one) /
 (1 + \code{null_used}), so with few simulated datasets it can take only a few values; the
@@ -89,7 +93,10 @@ of n spots, which keeps the probability of any false split in the whole tree at 
 \code{alpha};
 \item \code{decision}: \code{split} when \code{p_value <= level}, \verb{no split} otherwise, or why the part was not
 tested: \verb{not tested: spatial fit} (the spatial parameters could not be estimated because
-the part has too few spots; its spots get no domain), \verb{not tested: too few spots} or
+the part has too few spots; its spots get no domain),
+\verb{not tested: simulated splits too small} (the simulated datasets whose top split left
+fewer than \code{min_child_size} spots on a side outnumbered the valid ones; its spots get no
+domain), \verb{not tested: too few spots} or
 \verb{not tested: a side too small} (smaller than \code{min_node_size} or \code{min_child_size} of
 \code{\link[=sigdots_control]{sigdots_control()}}; reported as a domain), \verb{not tested: B_cap too small} (the level is so
 small that more than \code{B_cap} simulated datasets would be needed; reported as a domain).

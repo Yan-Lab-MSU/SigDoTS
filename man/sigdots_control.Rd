@@ -41,7 +41,10 @@ not tested and is reported as a domain.}
 
 \item{min_child_size}{A whole number (8 by default). A split that would leave fewer spots
 than this on either side is not tested, and the part is reported as a domain. A simulated
-dataset whose top split leaves fewer spots on a side stops the run with an error.}
+dataset whose top split leaves fewer spots on a side is replaced by a new one, so that the
+test keeps its number of simulated datasets (\code{summary()} lists how many were replaced). If
+such simulated datasets outnumber the valid ones, the part is not tested, its spots get no
+domain, and \code{\link[=sigdots]{sigdots()}} warns.}
 
 \item{B_cap}{The largest number of simulated datasets a single Monte Carlo test may use (a
 whole number, 5000 by default, at least \code{B_max}). A test on m of n spots needs about

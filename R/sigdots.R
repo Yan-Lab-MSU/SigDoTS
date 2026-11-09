@@ -153,8 +153,9 @@
 #'       a spot in a part of the tree that could not be tested.}
 #'     \item{`domain_nodes`}{The node numbers of the domains, in the order of their numbers.}
 #'     \item{`untested_nodes`, `untested_spot_node`}{The node numbers of the parts that could
-#'       not be tested because their spatial parameters could not be estimated, and, for every
-#'       spot, the node number of the untested part it lies in (`NA` otherwise).}
+#'       not be tested (their spatial parameters could not be estimated, or too many of their
+#'       simulated datasets had a top split with a side smaller than `min_child_size`), and,
+#'       for every spot, the node number of the untested part it lies in (`NA` otherwise).}
 #'     \item{`candidate_domains`, `candidate_names`}{The candidate domain of every spot,
 #'       numbered 1 to `K0`, and the name of each candidate domain (your own label when
 #'       `candidate_labels` was given).}
@@ -170,6 +171,8 @@
 #'       the columns of `summary(fit)$tests` and more: `parent`, `left_spots`, `right_spots`,
 #'       `tested`, `skip_reason`, `null_median` (median statistic of the simulated datasets),
 #'       `null_max` (the largest number of simulated datasets the test could have used),
+#'       `null_replaced` (simulated datasets replaced because their top split left fewer than
+#'       `min_child_size` spots on a side; they are not counted in `null_used`),
 #'       `clearer` (simulated datasets that split at least as clearly as the data),
 #'       `stop_reason`, `p_initial` and `refined` (normal approximation: the p-value from the
 #'       first datasets, and whether more were simulated), `ell` and `eta` (the estimated
@@ -244,6 +247,13 @@
 #'    everything below it, and its spots get no domain (`NA`); `sigdots()` warns. Where the
 #'    spots of a part fall into separate pieces on the nearest-neighbour graph, the pieces are
 #'    joined by their closest spots before the trees are built (see [summary.sigdots()]).
+#' 8. **Simulated datasets with a too-small split.** The data's split is tested only when both
+#'    of its sides have at least `min_child_size` spots, so the same is asked of every
+#'    simulated dataset: one whose top split leaves fewer spots on a side is replaced by the
+#'    next one in seed order and is not counted, and the test still uses its number of
+#'    simulated datasets (`summary()` lists how many were replaced). If the replaced ones
+#'    outnumber the valid ones, the part is left untested together with everything below it,
+#'    and its spots get no domain (`NA`); `sigdots()` warns.
 #'
 #' @section Choosing K0:
 #' `K0` must be larger than the number of domains you expect, and fine enough that every
@@ -269,6 +279,10 @@
 #' * *The spatial parameters could not be estimated at ... part(s) of the tree*: a part has
 #'   too few spots for the estimation; it is marked `[!] NOT TESTED` and its spots get no
 #'   domain (`NA`). A smaller `K0` makes the parts larger.
+#' * *The simulated datasets whose top split left fewer than min_child_size spots on a side
+#'   outnumbered the valid ones*: the part is marked `[!] NOT TESTED` and its spots get no
+#'   domain (`NA`). This happens where the spots of a part lie in many small separate pieces;
+#'   see `vignette("faq")`.
 #' * *The estimated spatial range ell is at the upper end of its allowed range*: the true
 #'   range may be longer, which can make splits easier to keep; rerun with a wider `ell_range` in
 #'   [sigdots_control()].
@@ -278,7 +292,8 @@
 #' Before computing anything, `sigdots()` checks its input and stops with a message that names
 #' the argument at fault (for example, when `x` has as many columns as `coords` has rows, it
 #' suggests `t(x)`). A simulated dataset that fails also stops the run, rather than being
-#' dropped. Every message is explained in `vignette("faq")`.
+#' dropped (one whose top split is too small has not failed: it is replaced, as described
+#' above). Every message is explained in `vignette("faq")`.
 #'
 #' @references
 #' Wang H, Cao F, Shen H, Liu Y, Yan G (2026). Statistical significance testing for spatial
@@ -424,7 +439,10 @@ sigdots <- function(x, coords = NULL, K0 = NULL,
 #'   not tested and is reported as a domain.
 #' @param min_child_size A whole number (8 by default). A split that would leave fewer spots
 #'   than this on either side is not tested, and the part is reported as a domain. A simulated
-#'   dataset whose top split leaves fewer spots on a side stops the run with an error.
+#'   dataset whose top split leaves fewer spots on a side is replaced by a new one, so that the
+#'   test keeps its number of simulated datasets (`summary()` lists how many were replaced). If
+#'   such simulated datasets outnumber the valid ones, the part is not tested, its spots get no
+#'   domain, and [sigdots()] warns.
 #' @param B_cap The largest number of simulated datasets a single Monte Carlo test may use (a
 #'   whole number, 5000 by default, at least `B_max`). A test on m of n spots needs about
 #'   `(n - 1) / (alpha * (m - 1))` simulated datasets to keep a split, so a test on a small part

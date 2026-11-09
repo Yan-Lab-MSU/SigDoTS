@@ -130,6 +130,12 @@ approximation needs 10 or 50 at any level, which makes it much faster for such t
   the spatial parameters cannot be estimated (too few pairs of spots in the same candidate
   domain: at least 4 distance bins with 200 pairs each are needed) is reported as untested,
   its spots get no domain, and SigDoTS warns.
+* **Simulated datasets with a too-small split.** The data's split is tested only when both
+  of its sides have at least 8 spots, so the same is asked of every simulated dataset: one
+  whose top split leaves fewer than 8 spots on a side is replaced by the next one in seed
+  order and is not counted; `summary()` lists the tests where this happened. If the replaced
+  ones outnumber the valid ones, the part is reported as untested, its spots get no domain,
+  and SigDoTS warns.
 * **Separate pieces.** The tree needs the spots of a part to be connected on the
   6-nearest-neighbour graph. Where they fall into pieces (a layer cut by a fold, or spots
   whose neighbours all belong to other candidate domains), the pieces are joined by their closest spots

@@ -28,6 +28,8 @@
           "split" = ": split",
           "no split" = ": no split",
           "not tested: spatial fit" = sprintf(": %s NOT TESTED (spatial parameters could not be estimated)", g$mark),
+          "not tested: simulated splits too small" =
+            sprintf(": %s NOT TESTED (too many simulated datasets with a side below min_child_size)", g$mark),
           sprintf(": %s", t$decision[k])) else ""
       tail <- if (!is.na(dom)) sprintf("   => DOMAIN %d", dom) else ""
       paste0(head, mid, tail)
@@ -66,9 +68,9 @@
 #'
 #' @details
 #' The printed summary has four parts: the settings (header lines), the number of domains, the
-#' split tree, and the tests table, followed, where they apply, by the parts that could not be
-#' tested, the parts whose spots fall into separate pieces, and a note when the candidate
-#' domains were supplied by you.
+#' split tree, and the tests table, followed, where they apply, by the tests in which simulated
+#' datasets were replaced, the parts that could not be tested, the parts whose spots fall into
+#' separate pieces, and a note when the candidate domains were supplied by you.
 #'
 #' @section The header lines:
 #' * `Data`: the number of spots and genes, and, for an object, where the expression came from.
@@ -89,9 +91,10 @@
 #' `=> DOMAIN k` marks a part that was not split further: it is the k-th domain, and the
 #' lines under it list the candidate domains it contains with their numbers of spots. A single
 #' candidate domain is never tested; when its parent is split, it is a domain by itself.
-#' `[!] NOT TESTED` marks a part that could not be tested because its spatial parameters could
-#' not be estimated; its spots get no domain. The tree is drawn with box-drawing characters, or
-#' with `|--` and `` `-- `` where the console cannot show them.
+#' `[!] NOT TESTED` marks a part that could not be tested, because its spatial parameters could
+#' not be estimated or because too many of its simulated datasets had a top split with a side
+#' smaller than `min_child_size`; its spots get no domain. The tree is drawn with box-drawing
+#' characters, or with `|--` and `` `-- `` where the console cannot show them.
 #'
 #' @section The tests table:
 #' One row per part of the tree that the testing reached, from the top. The printed table shows
@@ -103,7 +106,10 @@
 #' * `statistic`: the split statistic of the data, between 0 and 1: the within-group sum of
 #'   squares of the two sides of the split divided by the total sum of squares, over all genes.
 #'   A smaller value means a clearer split;
-#' * `null_used`: the number of simulated single-domain datasets the test used;
+#' * `null_used`: the number of simulated single-domain datasets the test used. A simulated
+#'   dataset whose top split leaves fewer than `min_child_size` spots on a side is replaced by
+#'   a new one and is not counted here; the summary lists the tests where this happened, with
+#'   the number replaced;
 #' * `p_value` (printed as `p`): the p-value of the test. With the Monte Carlo p-value it is
 #'   (1 + the number of simulated datasets whose statistic was at most the observed one) /
 #'   (1 + `null_used`), so with few simulated datasets it can take only a few values; the
@@ -115,7 +121,10 @@
 #'   `alpha`;
 #' * `decision`: `split` when `p_value <= level`, `no split` otherwise, or why the part was not
 #'   tested: `not tested: spatial fit` (the spatial parameters could not be estimated because
-#'   the part has too few spots; its spots get no domain), `not tested: too few spots` or
+#'   the part has too few spots; its spots get no domain),
+#'   `not tested: simulated splits too small` (the simulated datasets whose top split left
+#'   fewer than `min_child_size` spots on a side outnumbered the valid ones; its spots get no
+#'   domain), `not tested: too few spots` or
 #'   `not tested: a side too small` (smaller than `min_node_size` or `min_child_size` of
 #'   [sigdots_control()]; reported as a domain), `not tested: B_cap too small` (the level is so
 #'   small that more than `B_cap` simulated datasets would be needed; reported as a domain).
@@ -199,10 +208,24 @@ print.summary.sigdots <- function(x, ...) {
                       decision = tested$decision, check.names = FALSE)
     print(tab, row.names = FALSE, right = TRUE)
   }
+  repl <- tested[!is.na(tested$null_replaced) & tested$null_replaced > 0L, , drop = FALSE]
+  if (nrow(repl)) {
+    cat(sprintf("\nSimulated datasets replaced, because their top split left fewer than %d spots on a side (min_child_size):\n",
+                s$control$min_child_size))
+    writeLines(sprintf("  [%d] %d replaced, %d used", repl$node, repl$null_replaced, repl$null_used))
+  }
   nofit <- t[t$decision == "not tested: spatial fit", , drop = FALSE]
   if (nrow(nofit)) {
     cat("\nNot tested, because the spatial parameters could not be estimated (too few spots); these spots have no domain:\n")
     writeLines(sprintf("  [%d] %d spots, candidate domains %s", nofit$node, nofit$spots, nofit$candidate_domains))
+  }
+  small <- t[t$decision == "not tested: simulated splits too small", , drop = FALSE]
+  if (nrow(small)) {
+    cat(sprintf(paste0("\nNot tested, because the simulated datasets whose top split left fewer than %d spots on a side ",
+                       "(min_child_size) outnumbered the valid ones; these spots have no domain:\n"),
+                s$control$min_child_size))
+    writeLines(sprintf("  [%d] %d spots, candidate domains %s (%d simulated datasets replaced)", small$node, small$spots,
+                       small$candidate_domains, small$null_replaced))
   }
   disc <- t[!is.na(t$pieces), , drop = FALSE]
   if (length(fit$spot_pieces) > 1L || nrow(disc)) {

@@ -606,17 +606,30 @@ node_pvalue_multicluster <- function(
   }
 
   p_v <- ncol(X_v)
-  rep_seeds <- as.integer(seed) + as.integer(node_id) * 100000L + seq_len(B_max_int)
+  # Simulated datasets whose top split is too small (2026-11-09). A part is tested only if both
+  # sides of its split have at least min_child_size spots, and the same is asked of the top
+  # split of every simulated dataset. One that fails is REPLACED: it is not counted, and the
+  # next one in seed order is drawn, so the test still gets its planned number of valid
+  # simulated datasets. Simulated dataset b of a test has the seed seed + node_id * 100000 + b
+  # for b = 1, 2, 3, ... (computed from b, since replaced ones take b beyond B_max), so the
+  # ones used depend only on their order, never on n_cores. If the replaced ones outnumber the
+  # valid ones, the part is left untested, like a part whose spatial parameters cannot be
+  # estimated: this is checked when the test ends, and the test ends at once when more than
+  # B_max have been replaced, because the valid ones can then no longer catch up. Until
+  # 0.2.5.8 such a simulated dataset stopped the run ("null_root_split_below_min_child_size").
+  # Where none occurs, every number is as before.
+  rep_seed_base <- as.integer(seed) + as.integer(node_id) * 100000L
   min_child_int <- as.integer(min_child_size)
 
   mc_one_rep <- function(b) {
-    set.seed(rep_seeds[b])
+    rep_seed_b <- rep_seed_base + as.integer(b)
+    set.seed(rep_seed_b)
     tryCatch({
       Xb <- simulate_node_null(null_fit = null_fit, n = n_v, p = p_v)
 
       t_null <- build_local_null_subtree(
         X_v_rep = Xb, coords_v = coords_v, spot_graph_v = spot_graph_v,
-        Kv = Kv, seed = rep_seeds[b],
+        Kv = Kv, seed = rep_seed_b,
         ci_pca_dims = ci_pca_dims, n_comp_min = n_comp_min,
         cluster_method = cluster_method,
         bayesspace_args = bayesspace_args
@@ -625,15 +638,20 @@ node_pvalue_multicluster <- function(
       rs <- extract_root_split_from_tree(t_null)
       if (length(rs$left_spots) < min_child_int ||
           length(rs$right_spots) < min_child_int) {
-        stop("null_root_split_below_min_child_size")
+        # Not an error: this simulated dataset is replaced by the next one in seed order.
+        list(
+          replaced = TRUE,
+          left_n = length(rs$left_spots),
+          right_n = length(rs$right_spots)
+        )
+      } else {
+        ci_val <- compute_node_ci_null(X_v_rep = Xb, null_tree = t_null)
+
+        list(
+          ci = ci_val,
+          tree_adjacency = .summarize_tree_adjacency(t_null)
+        )
       }
-
-      ci_val <- compute_node_ci_null(X_v_rep = Xb, null_tree = t_null)
-
-      list(
-        ci = ci_val,
-        tree_adjacency = .summarize_tree_adjacency(t_null)
-      )
     }, error = function(e) e)
   }
 
@@ -650,6 +668,11 @@ node_pvalue_multicluster <- function(
   null_adjacency_sources <- character(0)
   null_component_filter_reasons <- character(0)
   failures <- 0L
+  # The simulated datasets replaced because their top split had a side below min_child_size
+  # (how many, and their numbers), and whether more than B_max have been replaced.
+  n_replaced <- 0L
+  replaced_reps <- integer(0)
+  too_many_replaced <- FALSE
   early_stop_reason <- NA_character_
   mc_t0 <- proc.time()[3]
   next_idx <- 1L
@@ -703,23 +726,72 @@ node_pvalue_multicluster <- function(
     diagnostics
   }
 
+  # The result of a node left untested because its replaced simulated datasets outnumber its
+  # valid ones (traverse_tree_topdown() records it; nothing below it is tested).
+  untested_replaced_result <- function() {
+    if (verbose) message(sprintf(
+      paste0("    [Node %d] %d null replicates had a first split with a side below ",
+             "min_child_size=%d and were replaced; %d were valid. The node is left untested."),
+      node_id, n_replaced, min_child_int, length(CI_null)))
+    list(
+      tested = FALSE,
+      reason_skipped = "null_splits_mostly_below_min_child_size",
+      n_v = n_v,
+      Kv = Kv,
+      CI_obs = CI_obs,
+      valid_CI_null = CI_null,
+      alpha_star = alpha_star,
+      pvalue_method = pvalue_method,
+      piece_sizes = piece_sizes,
+      n_valid_reps = length(CI_null),
+      n_failed_reps = failures,
+      n_replaced_reps = n_replaced,
+      replaced_reps = replaced_reps,
+      min_child_size = min_child_int,
+      B_min = B_min_int,
+      B_max = B_max_int,
+      B_max_configured = bootstrap_budget$configured,
+      B_max_required = bootstrap_budget$required,
+      B_max_effective = bootstrap_budget$effective,
+      bootstrap_B_max_cap = bootstrap_budget$cap,
+      bootstrap_resolution_sufficient =
+        bootstrap_budget$resolution_sufficient,
+      minimum_attainable_p = bootstrap_budget$minimum_attainable_p,
+      diagnostics = node_diagnostics(
+        null_fit = null_fit,
+        spatial_backend = spatial_backend_diagnostics
+      )
+    )
+  }
+  # A simulated dataset numbered above 99999 would take its seed from the next node's block.
+  check_rep_number <- function(b) {
+    if (b > 99999L) stop("A test would need more than 99999 null replicates.")
+    invisible(NULL)
+  }
+
   # Package (2026-11-01): the normal approximation of v0.2.5.8 (wrapper lines 885-1035). A
   # replicate that fails stops the run, as in the Monte Carlo branch below (strict mode is the
   # only mode). The replicates used are always numbers 1..normal_n_initial, then up to
-  # normal_n_refine, so the result does not depend on n_cores.
+  # normal_n_refine, so the result does not depend on n_cores. (2026-11-09: plus the numbers
+  # that replace replicates whose top split is too small, in order.)
   if (identical(pvalue_method, "normal_adaptive")) {
     run_until_valid <- function(target_valid) {
-      while (next_idx <= B_max_int && length(CI_null) < target_valid) {
+      # Replaced replicates do not use up the B_max replicate numbers, and more than B_max of
+      # them end the test. Without any, the batches are as before.
+      while ((next_idx - 1L - n_replaced) < B_max_int && length(CI_null) < target_valid &&
+             !too_many_replaced) {
         remaining_valid <- target_valid - length(CI_null)
-        batch_end <- min(next_idx + min(batch_size, remaining_valid) - 1L, B_max_int)
+        batch_end <- next_idx + min(batch_size, remaining_valid,
+                                    B_max_int - (next_idx - 1L - n_replaced)) - 1L
+        check_rep_number(batch_end)
         batch_idx <- next_idx:batch_end
 
         if (verbose) {
           elapsed_mc <- proc.time()[3] - mc_t0
           message(sprintf(
-            "    [Node %d] Normal MC batch %d-%d/%d  (target_valid=%d, b_valid=%d, fail=%d, cores=%d, elapsed=%.0fs)",
+            "    [Node %d] Normal MC batch %d-%d/%d  (target_valid=%d, b_valid=%d, fail=%d, replaced=%d, cores=%d, elapsed=%.0fs)",
             node_id, next_idx, batch_end, B_max_int, target_valid,
-            length(CI_null), failures, length(batch_idx), elapsed_mc))
+            length(CI_null), failures, n_replaced, length(batch_idx), elapsed_mc))
         }
 
         batch_results <- run_batch(batch_idx)
@@ -729,6 +801,13 @@ node_pvalue_multicluster <- function(
             failures <<- failures + 1L
             msg <- if (inherits(res, "error")) res$message else "MC worker failed"
             stop(msg)
+          } else if (isTRUE(res$replaced)) {
+            n_replaced <<- n_replaced + 1L
+            replaced_reps <<- c(replaced_reps, batch_idx[i])
+            if (n_replaced > B_max_int) {
+              too_many_replaced <<- TRUE
+              break
+            }
           } else if (
             is.list(res) && "ci" %in% names(res) &&
               length(res$ci) == 1L && is.finite(res$ci)
@@ -745,6 +824,7 @@ node_pvalue_multicluster <- function(
     }
 
     run_until_valid(normal_n_initial_int)
+    if (n_replaced > length(CI_null)) return(untested_replaced_result())
     if (length(CI_null) < normal_n_initial_int) {
       return(list(
         tested = FALSE,
@@ -756,6 +836,7 @@ node_pvalue_multicluster <- function(
         pvalue_method = pvalue_method,
         n_valid_reps = length(CI_null),
         n_failed_reps = failures,
+        n_replaced_reps = n_replaced,
         piece_sizes = piece_sizes,
         diagnostics = node_diagnostics(
           null_fit = null_fit,
@@ -779,6 +860,7 @@ node_pvalue_multicluster <- function(
         pvalue_method = pvalue_method,
         n_valid_reps = length(CI_null),
         n_failed_reps = failures,
+        n_replaced_reps = n_replaced,
         piece_sizes = piece_sizes,
         diagnostics = node_diagnostics(
           null_fit = null_fit,
@@ -793,6 +875,7 @@ node_pvalue_multicluster <- function(
     band_high <- alpha_star * normal_band_multiplier
     normal_used_refine <- p_initial >= band_low && p_initial <= band_high
     if (normal_used_refine) run_until_valid(normal_n_refine_int)
+    if (n_replaced > length(CI_null)) return(untested_replaced_result())
 
     b_valid <- length(CI_null)
     normal_mu <- mean(CI_null)
@@ -809,6 +892,7 @@ node_pvalue_multicluster <- function(
         pvalue_method = pvalue_method,
         n_valid_reps = b_valid,
         n_failed_reps = failures,
+        n_replaced_reps = n_replaced,
         piece_sizes = piece_sizes,
         diagnostics = node_diagnostics(
           null_fit = null_fit,
@@ -843,6 +927,8 @@ node_pvalue_multicluster <- function(
       alpha_star = alpha_star,
       n_valid_reps = b_valid,
       n_failed_reps = failures,
+      n_replaced_reps = n_replaced,
+      replaced_reps = replaced_reps,
       B_min = B_min_int,
       B_max = B_max_int,
       pvalue_method = pvalue_method,
@@ -862,20 +948,25 @@ node_pvalue_multicluster <- function(
   }
 
   # A null replicate that fails stops the run (v0.2.5.8's strict mode, now the only mode):
-  # dropping it would change the p-value without saying so.
-  while (next_idx <= B_max_int) {
-    batch_end <- min(next_idx + batch_size - 1L, B_max_int)
+  # dropping it would change the p-value without saying so. A replicate whose top split is too
+  # small is not a failure: it is replaced (above), and the number replaced is recorded.
+  # The loop runs until the test has B_max valid replicates (until 0.2.5.8: until replicate
+  # number B_max); the replicate numbers go beyond B_max by the number replaced. Without
+  # replaced replicates, the batches are as before.
+  while (length(CI_null) < B_max_int && !too_many_replaced) {
+    batch_end <- next_idx + min(batch_size, B_max_int - length(CI_null)) - 1L
+    check_rep_number(batch_end)
     batch_idx <- next_idx:batch_end
 
     if (verbose) {
       elapsed_mc <- proc.time()[3] - mc_t0
       done_so_far <- next_idx - 1L
       rate <- if (done_so_far > 0L) elapsed_mc / done_so_far else NA_real_
-      eta <- if (!is.na(rate)) rate * (B_max_int - done_so_far) else NA_real_
+      eta <- if (!is.na(rate)) rate * (B_max_int - length(CI_null)) else NA_real_
       message(sprintf(
-        "    [Node %d] MC batch %d-%d/%d  (b_valid=%d, fail=%d, cores=%d, elapsed=%.0fs, ETA<=%.0fs)",
+        "    [Node %d] MC batch %d-%d/%d  (b_valid=%d, fail=%d, replaced=%d, cores=%d, elapsed=%.0fs, ETA<=%.0fs)",
         node_id, next_idx, batch_end, B_max_int,
-        length(CI_null), failures, length(batch_idx),
+        length(CI_null), failures, n_replaced, length(batch_idx),
         elapsed_mc, ifelse(is.na(eta), 0, eta)))
     }
 
@@ -891,6 +982,14 @@ node_pvalue_multicluster <- function(
         failures <- failures + 1L
         msg <- if (inherits(res, "error")) res$message else "MC worker failed"
         stop(msg)
+      } else if (isTRUE(res$replaced)) {
+        # Replaced, in replicate order. More than B_max of them end the test.
+        n_replaced <- n_replaced + 1L
+        replaced_reps <- c(replaced_reps, batch_idx[i])
+        if (n_replaced > B_max_int) {
+          too_many_replaced <- TRUE
+          break
+        }
       } else if (
         is.list(res) && "ci" %in% names(res) &&
           length(res$ci) == 1L && is.finite(res$ci)
@@ -922,6 +1021,7 @@ node_pvalue_multicluster <- function(
         node_id, b_valid, c_b, p_lower_now, p_upper_now, alpha_star))
     }
 
+    if (too_many_replaced) break
     if (b_valid >= B_min_int) {
       if (p_lower_now > alpha_star) {
         early_stop_reason <- "certify_p_lower_gt_alpha"
@@ -939,6 +1039,9 @@ node_pvalue_multicluster <- function(
       }
     }
   }
+
+  # Where the replaced replicates outnumber the valid ones, the node is left untested.
+  if (n_replaced > length(CI_null)) return(untested_replaced_result())
 
   b_valid <- length(CI_null)
   c_b <- sum(CI_null <= CI_obs)
@@ -969,6 +1072,8 @@ node_pvalue_multicluster <- function(
     alpha_star = alpha_star,
     n_valid_reps = b_valid,
     n_failed_reps = failures,
+    n_replaced_reps = n_replaced,
+    replaced_reps = replaced_reps,
     B_min = B_min_int,
     B_max = B_max_int,
     B_max_configured = bootstrap_budget$configured,
@@ -1121,6 +1226,10 @@ traverse_tree_topdown <- function(
                 as.integer(res$b_valid))
       } else if (identical(res$reason_skipped, "spatial_fit_failed")) {
         "NOT TESTED: the spatial parameters could not be estimated"
+      } else if (identical(res$reason_skipped, "null_splits_mostly_below_min_child_size")) {
+        sprintf(paste0("NOT TESTED: %d simulated datasets had a top split with fewer than %d spots ",
+                       "on a side, against %d valid ones"),
+                as.integer(res$n_replaced_reps), as.integer(res$min_child_size), as.integer(res$n_valid_reps))
       } else sprintf("not tested (%s)", res$reason_skipped %||% "unknown")
       message(sprintf("  test at node %d (%d spots, %d candidate domains): %s [%.0f s]",
                       node_id, n_v, as.integer(Kv_display), outcome, node_elapsed))
@@ -1151,9 +1260,11 @@ traverse_tree_topdown <- function(
     if (isTRUE(res$significant)) {
       visit(node$left_child_id)
       visit(node$right_child_id)
-    } else if (identical(res$reason_skipped, "spatial_fit_failed")) {
-      # Not a domain: the test could not be done, so neither this node nor anything below it
-      # was tested.
+    } else if (isTRUE(res$reason_skipped %in% c("spatial_fit_failed",
+                                                "null_splits_mostly_below_min_child_size"))) {
+      # Not a domain: the test could not be done (the spatial parameters could not be estimated,
+      # or the replaced simulated datasets outnumber the valid ones), so neither this node nor
+      # anything below it was tested.
       untested_nodes <<- c(untested_nodes, node_id)
     } else {
       certified_nodes <<- c(certified_nodes, node_id)
@@ -1197,6 +1308,7 @@ traverse_tree_topdown <- function(
         reason_skipped = "ancestor_not_significant",
         n_valid_reps = 0L,
         n_failed_reps = 0L,
+        n_replaced_reps = 0L,
         B_max_configured = row_budget$configured,
         B_max_required = row_budget$required,
         B_max_effective = row_budget$effective,
@@ -1234,6 +1346,7 @@ traverse_tree_topdown <- function(
         reason_skipped = res$reason_skipped %||% NA_character_,
         n_valid_reps = as.integer(res$n_valid_reps %||% 0L),
         n_failed_reps = as.integer(res$n_failed_reps %||% 0L),
+        n_replaced_reps = as.integer(res$n_replaced_reps %||% 0L),
         B_max_configured =
           res$B_max_configured %||% row_budget$configured,
         B_max_required = res$B_max_required %||% row_budget$required,

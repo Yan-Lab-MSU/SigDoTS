@@ -295,7 +295,9 @@ plot.sigdots <- function(x, type = c("domains", "candidates", "tree", "correlogr
   un <- t[!t$tested, , drop = FALSE]
   lab_un <- data.frame(x = nodes$x[match(un$node, nodes$node)], y = nodes$y[match(un$node, nodes$node)],
                        label = sprintf("[%d] %d spots\n%s%s", un$node, un$spots,
-                                       ifelse(un$decision == "not tested: spatial fit", "[!] NOT TESTED (spatial fit)", un$decision),
+                                       ifelse(un$decision == "not tested: spatial fit", "[!] NOT TESTED (spatial fit)",
+                                              ifelse(un$decision == "not tested: simulated splits too small",
+                                                     "[!] NOT TESTED (simulated splits too small)", un$decision)),
                                        ifelse(is.na(match(un$node, fit$domain_nodes)), "",
                                               sprintf("\n=> DOMAIN %d", match(un$node, fit$domain_nodes)))))
   leaves <- nodes[nodes$status == "candidate domain", ]
