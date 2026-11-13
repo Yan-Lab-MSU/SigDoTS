@@ -29,7 +29,7 @@ test_that("a 20 x 20 three-band dataset runs end to end and the accessors agree"
   expect_identical(st$decision[ok] == "split", st$p_value[ok] <= st$level[ok])
   expect_output(print(fit), "Number of domains")
   out <- capture.output(print(summary(fit)))
-  expect_true(any(grepl("^SigDoTS 0\\.2\\.5\\.8", out)))
+  expect_true(any(out == paste("SigDoTS", utils::packageVersion("SigDoTS"))))
   expect_true(any(grepl("Tests, from the top:", out)))
   expect_false(any(grepl("eta|ell|clearer|null_median", out)))
   expect_identical(fit$version, as.character(packageVersion("SigDoTS")))

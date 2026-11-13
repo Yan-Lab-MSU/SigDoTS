@@ -1,4 +1,4 @@
-# SigDoTS 0.2.5.8.9000 (development version)
+# SigDoTS 0.2.5.10
 
 * A simulated dataset whose top split leaves fewer than `min_child_size` spots on a side no
   longer stops the run. It is replaced by the next simulated dataset in seed order and is not

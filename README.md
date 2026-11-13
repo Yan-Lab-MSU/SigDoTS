@@ -62,7 +62,7 @@ installed automatically):
 
 ``` r
 install.packages(c("GpGp", "fields", "igraph", "RANN", "ggplot2"))
-install.packages("path/to/SigDoTS_0.2.5.8.tar.gz", repos = NULL, type = "source")
+install.packages("path/to/SigDoTS_0.2.5.10.tar.gz", repos = NULL, type = "source")
 ```
 
 On a new computer, installing the dependencies takes a few minutes;
@@ -105,7 +105,7 @@ dim(sigdots_example$x)          # spots x genes
 #> [1] 900 200
 fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [11 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [10 s]
 #>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
 #>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [7 s]
 #>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]

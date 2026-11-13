@@ -1,7 +1,7 @@
 Package: SigDoTS
 Type: Package
 Title: Hierarchical Significance Test for Spatial Domains
-Version: 0.2.5.8.9000
+Version: 0.2.5.10
 Authors@R: c(
     person("Huairui", "Wang", email = "byeah8887@gmail.com", role = c("aut", "cre")),
     person("Feiyu", "Cao", role = "aut"),
