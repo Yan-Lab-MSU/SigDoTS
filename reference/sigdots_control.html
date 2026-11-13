@@ -15,7 +15,7 @@ not named keep their defaults."><meta property="og:image" content="/logo.png"></
 
     <a class="navbar-brand me-2" href="../index.html">SigDoTS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,7 +106,10 @@ not tested and is reported as a domain.</p></dd>
 <dt id="arg-min-child-size">min_child_size<a class="anchor" aria-label="anchor" href="#arg-min-child-size"></a></dt>
 <dd><p>A whole number (8 by default). A split that would leave fewer spots
 than this on either side is not tested, and the part is reported as a domain. A simulated
-dataset whose top split leaves fewer spots on a side stops the run with an error.</p></dd>
+dataset whose top split leaves fewer spots on a side is replaced by a new one, so that the
+test keeps its number of simulated datasets (<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> lists how many were replaced). If
+such simulated datasets outnumber the valid ones, the part is not tested, its spots get no
+domain, and <code><a href="sigdots.html">sigdots()</a></code> warns.</p></dd>
 
 
 <dt id="arg-b-cap">B_cap<a class="anchor" aria-label="anchor" href="#arg-b-cap"></a></dt>

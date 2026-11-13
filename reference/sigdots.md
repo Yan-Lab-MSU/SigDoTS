@@ -311,9 +311,11 @@ these components:
 
 - `untested_nodes`, `untested_spot_node`:
 
-  The node numbers of the parts that could not be tested because their
-  spatial parameters could not be estimated, and, for every spot, the
-  node number of the untested part it lies in (`NA` otherwise).
+  The node numbers of the parts that could not be tested (their spatial
+  parameters could not be estimated, or too many of their simulated
+  datasets had a top split with a side smaller than `min_child_size`),
+  and, for every spot, the node number of the untested part it lies in
+  (`NA` otherwise).
 
 - `candidate_domains`, `candidate_names`:
 
@@ -345,18 +347,21 @@ these components:
   with the columns of `summary(fit)$tests` and more: `parent`,
   `left_spots`, `right_spots`, `tested`, `skip_reason`, `null_median`
   (median statistic of the simulated datasets), `null_max` (the largest
-  number of simulated datasets the test could have used), `clearer`
-  (simulated datasets that split at least as clearly as the data),
-  `stop_reason`, `p_initial` and `refined` (normal approximation: the
-  p-value from the first datasets, and whether more were simulated),
-  `ell` and `eta` (the estimated spatial parameters), five flags for
-  estimates at the ends of their ranges (`ell_at_lower_end`,
-  `ell_at_upper_end`, `ell_capped`, `eta_at_lower_bound`,
-  `eta_at_upper_bound`), `backend` and `vecchia_neighbors` (the spatial
-  computation), `pieces` (sizes of separate pieces, see
-  [`summary.sigdots()`](summary.sigdots.md)), and, for a part whose
-  spatial parameters could not be estimated, `spatial_fit_reason`,
-  `spatial_fit_usable_bins` and `min_pairs_per_bin`.
+  number of simulated datasets the test could have used),
+  `null_replaced` (simulated datasets replaced because their top split
+  left fewer than `min_child_size` spots on a side; they are not counted
+  in `null_used`), `clearer` (simulated datasets that split at least as
+  clearly as the data), `stop_reason`, `p_initial` and `refined` (normal
+  approximation: the p-value from the first datasets, and whether more
+  were simulated), `ell` and `eta` (the estimated spatial parameters),
+  five flags for estimates at the ends of their ranges
+  (`ell_at_lower_end`, `ell_at_upper_end`, `ell_capped`,
+  `eta_at_lower_bound`, `eta_at_upper_bound`), `backend` and
+  `vecchia_neighbors` (the spatial computation), `pieces` (sizes of
+  separate pieces, see [`summary.sigdots()`](summary.sigdots.md)), and,
+  for a part whose spatial parameters could not be estimated,
+  `spatial_fit_reason`, `spatial_fit_usable_bins` and
+  `min_pairs_per_bin`.
 
 - `null_statistics`:
 
@@ -466,6 +471,17 @@ these components:
     are joined by their closest spots before the trees are built (see
     [`summary.sigdots()`](summary.sigdots.md)).
 
+8.  **Simulated datasets with a too-small split.** The data's split is
+    tested only when both of its sides have at least `min_child_size`
+    spots, so the same is asked of every simulated dataset: one whose
+    top split leaves fewer spots on a side is replaced by the next one
+    in seed order and is not counted, and the test still uses its number
+    of simulated datasets
+    ([`summary()`](https://rdrr.io/r/base/summary.html) lists how many
+    were replaced). If the replaced ones outnumber the valid ones, the
+    part is left untested together with everything below it, and its
+    spots get no domain (`NA`); `sigdots()` warns.
+
 ## Choosing K0
 
 `K0` must be larger than the number of domains you expect, and fine
@@ -499,6 +515,12 @@ estimation with 200 genes on a part of 10,000 spots used 2.1 GiB, of
   `[!] NOT TESTED` and its spots get no domain (`NA`). A smaller `K0`
   makes the parts larger.
 
+- *The simulated datasets whose top split left fewer than min_child_size
+  spots on a side outnumbered the valid ones*: the part is marked
+  `[!] NOT TESTED` and its spots get no domain (`NA`). This happens
+  where the spots of a part lie in many small separate pieces; see
+  [`vignette("faq")`](../articles/faq.md).
+
 - *The estimated spatial range ell is at the upper end of its allowed
   range*: the true range may be longer, which can make splits easier to
   keep; rerun with a wider `ell_range` in
@@ -511,8 +533,10 @@ estimation with 200 genes on a part of 10,000 spots used 2.1 GiB, of
 Before computing anything, `sigdots()` checks its input and stops with a
 message that names the argument at fault (for example, when `x` has as
 many columns as `coords` has rows, it suggests `t(x)`). A simulated
-dataset that fails also stops the run, rather than being dropped. Every
-message is explained in [`vignette("faq")`](../articles/faq.md).
+dataset that fails also stops the run, rather than being dropped (one
+whose top split is too small has not failed: it is replaced, as
+described above). Every message is explained in
+[`vignette("faq")`](../articles/faq.md).
 
 ## References
 
@@ -556,10 +580,10 @@ with figures.
 # about 20 seconds on one core
 fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [13 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [3 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [10 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [9 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]
 fit
 #> SigDoTS: 900 spots, 200 genes
 #> Number of domains: 3   (spots per domain: 300, 300, 300)
@@ -577,7 +601,7 @@ fit
 #> 
 #> Use summary() for the tests.
 summary(fit)
-#> SigDoTS 0.2.5.8
+#> SigDoTS 0.2.5.10
 #> Data:     900 spots x 200 genes
 #> Start:    k-means on 15 principal components; 5 candidate domains
 #> Spatial:  Vecchia approximation (60 neighbours)
@@ -618,21 +642,21 @@ plot(fit, type = "tree")
 fit2 <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5,
                 B_min = 50, B_max = 50, n_cores = 2)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [43 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [30 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [33 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [22 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [40 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [18 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [25 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [18 s]
 
 # the normal approximation of the p-value
 fit3 <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5,
                 pvalue_method = "normal_adaptive")
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [10 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [8 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [6 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [6 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [7 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [4 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]
 summary(fit3)
-#> SigDoTS 0.2.5.8
+#> SigDoTS 0.2.5.10
 #> Data:     900 spots x 200 genes
 #> Start:    k-means on 15 principal components; 5 candidate domains
 #> Spatial:  Vecchia approximation (60 neighbours)

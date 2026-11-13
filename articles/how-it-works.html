@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SigDoTS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -224,6 +224,15 @@ tested and is reported as one domain. A part where the spatial
 parameters cannot be estimated (too few pairs of spots in the same
 candidate domain: at least 4 distance bins with 200 pairs each are
 needed) is reported as untested, its spots get no domain, and SigDoTS
+warns.</li>
+<li>
+<strong>Simulated datasets with a too-small split.</strong> The
+data’s split is tested only when both of its sides have at least 8
+spots, so the same is asked of every simulated dataset: one whose top
+split leaves fewer than 8 spots on a side is replaced by the next one in
+seed order and is not counted; <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> lists the tests
+where this happened. If the replaced ones outnumber the valid ones, the
+part is reported as untested, its spots get no domain, and SigDoTS
 warns.</li>
 <li>
 <strong>Separate pieces.</strong> The tree needs the spots of a part

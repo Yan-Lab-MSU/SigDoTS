@@ -21,7 +21,7 @@ at most alpha. The section &quot;How SigDoTS works&quot; below describes each st
 
     <a class="navbar-brand me-2" href="../index.html">SigDoTS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -299,8 +299,9 @@ a spot in a part of the tree that could not be tested.</p></dd>
 
 <dt><code>untested_nodes</code>, <code>untested_spot_node</code></dt>
 <dd><p>The node numbers of the parts that could
-not be tested because their spatial parameters could not be estimated, and, for every
-spot, the node number of the untested part it lies in (<code>NA</code> otherwise).</p></dd>
+not be tested (their spatial parameters could not be estimated, or too many of their
+simulated datasets had a top split with a side smaller than <code>min_child_size</code>), and,
+for every spot, the node number of the untested part it lies in (<code>NA</code> otherwise).</p></dd>
 
 <dt><code>candidate_domains</code>, <code>candidate_names</code></dt>
 <dd><p>The candidate domain of every spot,
@@ -326,6 +327,8 @@ spots under each node, and the candidate domains under each node.</p></dd>
 the columns of <code>summary(fit)$tests</code> and more: <code>parent</code>, <code>left_spots</code>, <code>right_spots</code>,
 <code>tested</code>, <code>skip_reason</code>, <code>null_median</code> (median statistic of the simulated datasets),
 <code>null_max</code> (the largest number of simulated datasets the test could have used),
+<code>null_replaced</code> (simulated datasets replaced because their top split left fewer than
+<code>min_child_size</code> spots on a side; they are not counted in <code>null_used</code>),
 <code>clearer</code> (simulated datasets that split at least as clearly as the data),
 <code>stop_reason</code>, <code>p_initial</code> and <code>refined</code> (normal approximation: the p-value from the
 first datasets, and whether more were simulated), <code>ell</code> and <code>eta</code> (the estimated
@@ -416,6 +419,13 @@ domain are domains without a test. A part where the spatial parameters cannot be
 everything below it, and its spots get no domain (<code>NA</code>); <code>sigdots()</code> warns. Where the
 spots of a part fall into separate pieces on the nearest-neighbour graph, the pieces are
 joined by their closest spots before the trees are built (see <code><a href="summary.sigdots.html">summary.sigdots()</a></code>).</p></li>
+<li><p><strong>Simulated datasets with a too-small split.</strong> The data's split is tested only when both
+of its sides have at least <code>min_child_size</code> spots, so the same is asked of every
+simulated dataset: one whose top split leaves fewer spots on a side is replaced by the
+next one in seed order and is not counted, and the test still uses its number of
+simulated datasets (<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> lists how many were replaced). If the replaced ones
+outnumber the valid ones, the part is left untested together with everything below it,
+and its spots get no domain (<code>NA</code>); <code>sigdots()</code> warns.</p></li>
 </ol></div>
     <div class="section level2">
     <h2 id="choosing-k-">Choosing K0<a class="anchor" aria-label="anchor" href="#choosing-k-"></a></h2>
@@ -450,6 +460,10 @@ and of 40,000 spots 29 GiB.</p>
 <ul><li><p><em>The spatial parameters could not be estimated at ... part(s) of the tree</em>: a part has
 too few spots for the estimation; it is marked <code>[!] NOT TESTED</code> and its spots get no
 domain (<code>NA</code>). A smaller <code>K0</code> makes the parts larger.</p></li>
+<li><p><em>The simulated datasets whose top split left fewer than min_child_size spots on a side
+outnumbered the valid ones</em>: the part is marked <code>[!] NOT TESTED</code> and its spots get no
+domain (<code>NA</code>). This happens where the spots of a part lie in many small separate pieces;
+see <code><a href="../articles/faq.html">vignette("faq")</a></code>.</p></li>
 <li><p><em>The estimated spatial range ell is at the upper end of its allowed range</em>: the true
 range may be longer, which can make splits easier to keep; rerun with a wider <code>ell_range</code> in
 <code><a href="sigdots_control.html">sigdots_control()</a></code>.</p></li>
@@ -458,7 +472,8 @@ range may be longer, which can make splits easier to keep; rerun with a wider <c
 </ul><p>Before computing anything, <code>sigdots()</code> checks its input and stops with a message that names
 the argument at fault (for example, when <code>x</code> has as many columns as <code>coords</code> has rows, it
 suggests <code>t(x)</code>). A simulated dataset that fails also stops the run, rather than being
-dropped. Every message is explained in <code><a href="../articles/faq.html">vignette("faq")</a></code>.</p>
+dropped (one whose top split is too small has not failed: it is replaced, as described
+above). Every message is explained in <code><a href="../articles/faq.html">vignette("faq")</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -489,10 +504,10 @@ method with figures.</p></div>
 <span class="r-in"><span><span class="co"># about 20 seconds on one core</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">sigdots</span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [13 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [3 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [10 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [9 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]</span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Number of domains: 3   (spots per domain: 300, 300, 300)</span>
@@ -510,7 +525,7 @@ method with figures.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Use summary() for the tests.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Data:     900 spots x 200 genes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Start:    k-means on 15 principal components; 5 candidate domains</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Spatial:  Vecchia approximation (60 neighbours)</span>
@@ -551,21 +566,21 @@ method with figures.</p></div>
 <span class="r-in"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu">sigdots</span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>                B_min <span class="op">=</span> <span class="fl">50</span>, B_max <span class="op">=</span> <span class="fl">50</span>, n_cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [43 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [30 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [33 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [22 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (50 simulated datasets) [40 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [18 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (50 simulated datasets) [25 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [18 s]</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># the normal approximation of the p-value</span></span></span>
 <span class="r-in"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu">sigdots</span><span class="op">(</span><span class="va">sigdots_example</span><span class="op">$</span><span class="va">x</span>, <span class="va">sigdots_example</span><span class="op">$</span><span class="va">coords</span>, K0 <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>                pvalue_method <span class="op">=</span> <span class="st">"normal_adaptive"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [10 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [8 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [6 s]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [6 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 9 (900 spots, 5 candidate domains): split (10 simulated datasets) [7 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 7 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 8 (600 spots, 3 candidate domains): split (10 simulated datasets) [4 s]</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   test at node 6 (300 spots, 2 candidate domains): no split (50 simulated datasets) [4 s]</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit3</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Data:     900 spots x 200 genes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Start:    k-means on 15 principal components; 5 candidate domains</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Spatial:  Vecchia approximation (60 neighbours)</span>

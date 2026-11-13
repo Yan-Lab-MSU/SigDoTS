@@ -1,5 +1,19 @@
 # Changelog
 
+## SigDoTS 0.2.5.10
+
+- A simulated dataset whose top split leaves fewer than `min_child_size`
+  spots on a side no longer stops the run. It is replaced by the next
+  simulated dataset in seed order and is not counted, so the test still
+  uses its number of simulated datasets;
+  [`summary()`](https://rdrr.io/r/base/summary.html) lists the tests
+  where this happened, and `fit$tests$null_replaced` gives the numbers.
+  Where the replaced simulated datasets outnumber the valid ones, that
+  part of the tree is left untested and marked, like a part whose
+  spatial parameters cannot be estimated, and the rest of the tree is
+  still tested. Results are unchanged wherever no simulated dataset had
+  such a split, and still do not depend on the number of cores.
+
 ## SigDoTS 0.2.5.8
 
 First version of the package.

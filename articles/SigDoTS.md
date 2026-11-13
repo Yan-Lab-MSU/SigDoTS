@@ -58,10 +58,10 @@ domains to merge. Here we use `K0 = 5` for three true domains.
 
 fit <- sigdots(sigdots_example$x, sigdots_example$coords, K0 = 5)
 #> SigDoTS: 900 spots, 200 genes; 5 candidate domains; testing from the top of the tree
-#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [13 s]
-#>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [3 s]
-#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [10 s]
-#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [3 s]
+#>   test at node 9 (900 spots, 5 candidate domains): split (19 simulated datasets) [8 s]
+#>   test at node 7 (300 spots, 2 candidate domains): no split (10 simulated datasets) [2 s]
+#>   test at node 8 (600 spots, 3 candidate domains): split (30 simulated datasets) [6 s]
+#>   test at node 6 (300 spots, 2 candidate domains): no split (15 simulated datasets) [2 s]
 ```
 
 While it runs, SigDoTS prints one line per test: where in the tree the
@@ -110,7 +110,7 @@ How to read the tree:
 ``` r
 
 summary(fit)
-#> SigDoTS 0.2.5.8
+#> SigDoTS 0.2.5.10
 #> Data:     900 spots x 200 genes
 #> Start:    k-means on 15 principal components; 5 candidate domains
 #> Spatial:  Vecchia approximation (60 neighbours)
@@ -265,7 +265,10 @@ SigDoTS then leaves that part untested, still tests the rest of the
 tree, warns at the end, marks the part `[!] NOT TESTED` in the tree, and
 gives its spots no domain (`NA` in
 [`domains()`](../reference/domains.md)). Using fewer candidate domains
-(a smaller `K0`) makes the parts larger.
+(a smaller `K0`) makes the parts larger. A part is also left untested
+when, among its simulated datasets, those whose top split leaves fewer
+than `min_child_size` spots on a side outnumber the valid ones;
+[`vignette("faq")`](../articles/faq.md) explains when this happens.
 
 ## Next
 

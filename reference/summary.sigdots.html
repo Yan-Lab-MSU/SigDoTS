@@ -13,7 +13,7 @@ own code."><meta property="og:image" content="/logo.png"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">SigDoTS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,9 +88,9 @@ above (a data frame with the columns <code>node</code>, <code>spots</code>, <cod
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The printed summary has four parts: the settings (header lines), the number of domains, the
-split tree, and the tests table, followed, where they apply, by the parts that could not be
-tested, the parts whose spots fall into separate pieces, and a note when the candidate
-domains were supplied by you.</p>
+split tree, and the tests table, followed, where they apply, by the tests in which simulated
+datasets were replaced, the parts that could not be tested, the parts whose spots fall into
+separate pieces, and a note when the candidate domains were supplied by you.</p>
     </div>
     <div class="section level2">
     <h2 id="the-header-lines">The header lines<a class="anchor" aria-label="anchor" href="#the-header-lines"></a></h2>
@@ -117,9 +117,10 @@ each side is tested in turn; <code>no split</code> means they are not, and the p
 <code>=&gt; DOMAIN k</code> marks a part that was not split further: it is the k-th domain, and the
 lines under it list the candidate domains it contains with their numbers of spots. A single
 candidate domain is never tested; when its parent is split, it is a domain by itself.
-<code>[!] NOT TESTED</code> marks a part that could not be tested because its spatial parameters could
-not be estimated; its spots get no domain. The tree is drawn with box-drawing characters, or
-with <code>|--</code> and <code>`--</code> where the console cannot show them.</p>
+<code>[!] NOT TESTED</code> marks a part that could not be tested, because its spatial parameters could
+not be estimated or because too many of its simulated datasets had a top split with a side
+smaller than <code>min_child_size</code>; its spots get no domain. The tree is drawn with box-drawing
+characters, or with <code>|--</code> and <code>`--</code> where the console cannot show them.</p>
     </div>
     <div class="section level2">
     <h2 id="the-tests-table">The tests table<a class="anchor" aria-label="anchor" href="#the-tests-table"></a></h2>
@@ -133,7 +134,10 @@ numbers for those not tested. The columns:</p><ul><li><p><code>node</code> (prin
 <li><p><code>statistic</code>: the split statistic of the data, between 0 and 1: the within-group sum of
 squares of the two sides of the split divided by the total sum of squares, over all genes.
 A smaller value means a clearer split;</p></li>
-<li><p><code>null_used</code>: the number of simulated single-domain datasets the test used;</p></li>
+<li><p><code>null_used</code>: the number of simulated single-domain datasets the test used. A simulated
+dataset whose top split leaves fewer than <code>min_child_size</code> spots on a side is replaced by
+a new one and is not counted here; the summary lists the tests where this happened, with
+the number replaced;</p></li>
 <li><p><code>p_value</code> (printed as <code>p</code>): the p-value of the test. With the Monte Carlo p-value it is
 (1 + the number of simulated datasets whose statistic was at most the observed one) /
 (1 + <code>null_used</code>), so with few simulated datasets it can take only a few values; the
@@ -145,7 +149,10 @@ of n spots, which keeps the probability of any false split in the whole tree at 
 <code>alpha</code>;</p></li>
 <li><p><code>decision</code>: <code>split</code> when <code>p_value &lt;= level</code>, <code>no split</code> otherwise, or why the part was not
 tested: <code>not tested: spatial fit</code> (the spatial parameters could not be estimated because
-the part has too few spots; its spots get no domain), <code>not tested: too few spots</code> or
+the part has too few spots; its spots get no domain),
+<code>not tested: simulated splits too small</code> (the simulated datasets whose top split left
+fewer than <code>min_child_size</code> spots on a side outnumbered the valid ones; its spots get no
+domain), <code>not tested: too few spots</code> or
 <code>not tested: a side too small</code> (smaller than <code>min_node_size</code> or <code>min_child_size</code> of
 <code><a href="sigdots_control.html">sigdots_control()</a></code>; reported as a domain), <code>not tested: B_cap too small</code> (the level is so
 small that more than <code>B_cap</code> simulated datasets would be needed; reported as a domain).</p></li>
@@ -189,7 +196,7 @@ happened, with the sizes of the pieces (for example "242, 49, 14 and 3 single sp
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Use summary() for the tests.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SigDoTS 0.2.5.10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Data:     900 spots x 200 genes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Start:    k-means on 15 principal components; 5 candidate domains</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Spatial:  Vecchia approximation (60 neighbours)</span>

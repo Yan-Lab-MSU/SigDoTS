@@ -79,6 +79,31 @@ part of the tree is larger; or, if the untested part is small and you
 accept it as it is, treat its spots as one domain yourself. Do not
 interpret an untested part as “not significant”: it was not tested.
 
+**“At 1 part(s) of the tree, the simulated datasets whose top split left
+fewer than min_child_size = 8 spots on a side outnumbered the valid
+ones, so these parts were not tested and their spots have no domain:
+node 9 (120 spots, candidate domains 2,5; 31 simulated datasets
+replaced). See summary() and vignette(”faq”).”** A split of the data is
+tested only when both of its sides have at least `min_child_size` spots,
+so SigDoTS asks the same of every simulated dataset. One whose top split
+leaves fewer spots on a side is replaced by a new one and is not
+counted; `summary(fit)` lists the tests where this happened, with the
+number replaced. It has been seen where the spots of a part lie in many
+small separate pieces and the simulated datasets are grouped with a
+method that uses each spot’s neighbourhood (BANKSY): the spots of a
+small isolated piece share most of their neighbours and tend to be
+grouped together even in simulated data without any domain, so the top
+split cuts off that piece. When the replaced simulated datasets
+outnumber the valid ones, SigDoTS does not decide the test from the ones
+that remain: it leaves the part untested, still tests the rest of the
+tree, marks the part `[!] NOT TESTED`, and gives its spots `NA` in
+`domains(fit)`.
+
+What to do: look at where the spots of that part lie
+(`plot(fit, type = "candidates")`). Fewer candidate domains (a smaller
+`K0`) usually give parts whose spots lie together. Do not interpret an
+untested part as “not significant”: it was not tested.
+
 **“At 1 test(s) the estimated spatial range ell is at the upper end of
 its allowed range (40): node(s) 8. Rerun with a wider range, for example
 control = sigdots_control(ell_range = c(0.3, 80)); see

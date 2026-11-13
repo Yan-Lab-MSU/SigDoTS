@@ -80,9 +80,11 @@ list with these components:
 
 - `untested_nodes`, `untested_spot_node` :
 
-  The node numbers of the parts that could not be tested because their
-  spatial parameters could not be estimated, and, for every spot, the
-  node number of the untested part it lies in (`NA` otherwise).
+  The node numbers of the parts that could not be tested (their spatial
+  parameters could not be estimated, or too many of their simulated
+  datasets had a top split with a side smaller than `min_child_size`),
+  and, for every spot, the node number of the untested part it lies in
+  (`NA` otherwise).
 
 - `candidate_domains`, `candidate_names` :
 
@@ -114,15 +116,18 @@ list with these components:
   with the columns of `summary(fit)$tests` and more: `parent`,
   `left_spots`, `right_spots`, `tested`, `skip_reason`, `null_median`
   (median statistic of the simulated datasets), `null_max` (the largest
-  number of simulated datasets the test could have used), `clearer`
-  (simulated datasets that split at least as clearly as the data),
-  `stop_reason`, `p_initial` and `refined` (normal approximation: the
-  p-value from the first datasets, and whether more were simulated),
-  `ell` and `eta` (the estimated spatial parameters), five flags for
-  estimates at the ends of their ranges (`ell_at_lower_end`,
-  `ell_at_upper_end`, `ell_capped`, `eta_at_lower_bound`,
-  `eta_at_upper_bound`), `backend` and `vecchia_neighbors` (the spatial
-  computation), `pieces` (sizes of separate pieces, see
+  number of simulated datasets the test could have used),
+  `null_replaced` (simulated datasets replaced because their top split
+  left fewer than `min_child_size` spots on a side; they are not counted
+  in `null_used`), `clearer` (simulated datasets that split at least as
+  clearly as the data), `stop_reason`, `p_initial` and `refined` (normal
+  approximation: the p-value from the first datasets, and whether more
+  were simulated), `ell` and `eta` (the estimated spatial parameters),
+  five flags for estimates at the ends of their ranges
+  (`ell_at_lower_end`, `ell_at_upper_end`, `ell_capped`,
+  `eta_at_lower_bound`, `eta_at_upper_bound`), `backend` and
+  `vecchia_neighbors` (the spatial computation), `pieces` (sizes of
+  separate pieces, see
   [`summary.sigdots()`](../reference/summary.sigdots.md)), and, for a
   part whose spatial parameters could not be estimated,
   `spatial_fit_reason`, `spatial_fit_usable_bins` and
@@ -237,6 +242,18 @@ list with these components:
     spots before the trees are built (see
     [`summary.sigdots()`](../reference/summary.sigdots.md)).
 
+8.  **Simulated datasets with a too-small split.** The data’s split is
+    tested only when both of its sides have at least `min_child_size`
+    spots, so the same is asked of every simulated dataset: one whose
+    top split leaves fewer spots on a side is replaced by the next one
+    in seed order and is not counted, and the test still uses its number
+    of simulated datasets
+    ([`summary()`](https://rdrr.io/r/base/summary.html) lists how many
+    were replaced). If the replaced ones outnumber the valid ones, the
+    part is left untested together with everything below it, and its
+    spots get no domain (`NA`); [`sigdots()`](../reference/sigdots.md)
+    warns.
+
 #### Choosing K0
 
 `K0` must be larger than the number of domains you expect, and fine
@@ -270,6 +287,12 @@ estimation with 200 genes on a part of 10,000 spots used 2.1 GiB, of
   `⁠[!] NOT TESTED⁠` and its spots get no domain (`NA`). A smaller `K0`
   makes the parts larger.
 
+- *The simulated datasets whose top split left fewer than min_child_size
+  spots on a side outnumbered the valid ones*: the part is marked
+  `⁠[!] NOT TESTED⁠` and its spots get no domain (`NA`). This happens
+  where the spots of a part lie in many small separate pieces; see
+  `vignette(“faq”)`.
+
 - *The estimated spatial range ell is at the upper end of its allowed
   range*: the true range may be longer, which can make splits easier to
   keep; rerun with a wider `ell_range` in
@@ -283,7 +306,9 @@ Before computing anything, [`sigdots()`](../reference/sigdots.md) checks
 its input and stops with a message that names the argument at fault (for
 example, when `x` has as many columns as `coords` has rows, it suggests
 `t(x)`). A simulated dataset that fails also stops the run, rather than
-being dropped. Every message is explained in `vignette(“faq”)`.
+being dropped (one whose top split is too small has not failed: it is
+replaced, as described above). Every message is explained in
+`vignette(“faq”)`.
 
 #### References
 
@@ -383,7 +408,7 @@ sigdots_control(
 | `k_nn` | The number of nearest spots each spot is linked to (a whole number, 6 by default; on the hexagonal Visium array each spot has 6 nearest neighbours). Two candidate domains are neighbours, and can be merged into one part of the tree, when some of their spots are linked. The same links are used for every simulated dataset. |
 | `n_comp_min` | A number greater than 0 and at most 1 (0.01 by default). When the spots of a candidate domain fall into separate pieces on the nearest-neighbour links, pieces with fewer spots than this share of the candidate domain are ignored when deciding which candidate domains are neighbours, so that a few stray spots do not make distant candidate domains neighbours. If ignoring them would leave the candidate domains unconnected, all pieces are used. |
 | `min_node_size` | A whole number (20 by default). A part of the tree with fewer spots is not tested and is reported as a domain. |
-| `min_child_size` | A whole number (8 by default). A split that would leave fewer spots than this on either side is not tested, and the part is reported as a domain. A simulated dataset whose top split leaves fewer spots on a side stops the run with an error. |
+| `min_child_size` | A whole number (8 by default). A split that would leave fewer spots than this on either side is not tested, and the part is reported as a domain. A simulated dataset whose top split leaves fewer spots on a side is replaced by a new one, so that the test keeps its number of simulated datasets ([`summary()`](https://rdrr.io/r/base/summary.html) lists how many were replaced). If such simulated datasets outnumber the valid ones, the part is not tested, its spots get no domain, and [`sigdots()`](../reference/sigdots.md) warns. |
 | `B_cap` | The largest number of simulated datasets a single Monte Carlo test may use (a whole number, 5000 by default, at least `B_max`). A test on m of n spots needs about `(n - 1) / (alpha * (m - 1))` simulated datasets to keep a split, so a test on a small part of a large sample may need more than `B_cap`; that part is then reported as a domain without a test, and [`sigdots()`](../reference/sigdots.md) warns. Not used by `pvalue_method = “normal_adaptive”`. |
 | `eta_min` | The smallest value allowed for `eta`, the share of the noise variance that is spatially correlated (a number greater than 0 and smaller than 1, 0.01 by default; the largest value is 1). |
 | `ell_range` | The range searched for `ell`, the distance over which the noise is spatially correlated: two increasing positive numbers, in spot spacings (the median distance from a spot to its nearest other spot in the part being tested), `c(0.3, 40)` by default. `ell` is also kept below twice the largest distance between two spots of the same candidate domain. When [`sigdots()`](../reference/sigdots.md) warns that `ell` is at the upper end of this range, the true range may be longer, which can make splits easier to keep; rerun with a wider range, for example `c(0.3, 80)`. |
@@ -513,9 +538,9 @@ print(x, ...)
 
 The printed summary has four parts: the settings (header lines), the
 number of domains, the split tree, and the tests table, followed, where
-they apply, by the parts that could not be tested, the parts whose spots
-fall into separate pieces, and a note when the candidate domains were
-supplied by you.
+they apply, by the tests in which simulated datasets were replaced, the
+parts that could not be tested, the parts whose spots fall into separate
+pieces, and a note when the candidate domains were supplied by you.
 
 #### Value
 
@@ -555,10 +580,12 @@ part is a domain. `⁠=> DOMAIN k⁠` marks a part that was not split further:
 it is the k-th domain, and the lines under it list the candidate domains
 it contains with their numbers of spots. A single candidate domain is
 never tested; when its parent is split, it is a domain by itself.
-`⁠[!] NOT TESTED⁠` marks a part that could not be tested because its
-spatial parameters could not be estimated; its spots get no domain. The
-tree is drawn with box-drawing characters, or with `⁠|–⁠` and `` ⁠`–⁠ ``
-where the console cannot show them.
+`⁠[!] NOT TESTED⁠` marks a part that could not be tested, because its
+spatial parameters could not be estimated or because too many of its
+simulated datasets had a top split with a side smaller than
+`min_child_size`; its spots get no domain. The tree is drawn with
+box-drawing characters, or with `⁠|–⁠` and `` ⁠`–⁠ `` where the console
+cannot show them.
 
 #### The tests table
 
@@ -580,7 +607,10 @@ those not tested. The columns:
   clearer split;
 
 - `null_used`: the number of simulated single-domain datasets the test
-  used;
+  used. A simulated dataset whose top split leaves fewer than
+  `min_child_size` spots on a side is replaced by a new one and is not
+  counted here; the summary lists the tests where this happened, with
+  the number replaced;
 
 - `p_value` (printed as `p`): the p-value of the test. With the Monte
   Carlo p-value it is (1 + the number of simulated datasets whose
@@ -598,7 +628,10 @@ those not tested. The columns:
 - `decision`: `split` when `p_value <= level`, `⁠no split⁠` otherwise, or
   why the part was not tested: `⁠not tested: spatial fit⁠` (the spatial
   parameters could not be estimated because the part has too few spots;
-  its spots get no domain), `⁠not tested: too few spots⁠` or
+  its spots get no domain), `⁠not tested: simulated splits too small⁠`
+  (the simulated datasets whose top split left fewer than
+  `min_child_size` spots on a side outnumbered the valid ones; its spots
+  get no domain), `⁠not tested: too few spots⁠` or
   `⁠not tested: a side too small⁠` (smaller than `min_node_size` or
   `min_child_size` of
   [`sigdots_control()`](../reference/sigdots_control.md); reported as a

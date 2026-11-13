@@ -43,9 +43,9 @@ and `tests`, the table described above (a data frame with the columns
 
 The printed summary has four parts: the settings (header lines), the
 number of domains, the split tree, and the tests table, followed, where
-they apply, by the parts that could not be tested, the parts whose spots
-fall into separate pieces, and a note when the candidate domains were
-supplied by you.
+they apply, by the tests in which simulated datasets were replaced, the
+parts that could not be tested, the parts whose spots fall into separate
+pieces, and a note when the candidate domains were supplied by you.
 
 ## The header lines
 
@@ -76,10 +76,12 @@ part is a domain. `=> DOMAIN k` marks a part that was not split further:
 it is the k-th domain, and the lines under it list the candidate domains
 it contains with their numbers of spots. A single candidate domain is
 never tested; when its parent is split, it is a domain by itself.
-`[!] NOT TESTED` marks a part that could not be tested because its
-spatial parameters could not be estimated; its spots get no domain. The
-tree is drawn with box-drawing characters, or with `|--` and `` `-- ``
-where the console cannot show them.
+`[!] NOT TESTED` marks a part that could not be tested, because its
+spatial parameters could not be estimated or because too many of its
+simulated datasets had a top split with a side smaller than
+`min_child_size`; its spots get no domain. The tree is drawn with
+box-drawing characters, or with `|--` and `` `-- `` where the console
+cannot show them.
 
 ## The tests table
 
@@ -101,7 +103,10 @@ those not tested. The columns:
   clearer split;
 
 - `null_used`: the number of simulated single-domain datasets the test
-  used;
+  used. A simulated dataset whose top split leaves fewer than
+  `min_child_size` spots on a side is replaced by a new one and is not
+  counted here; the summary lists the tests where this happened, with
+  the number replaced;
 
 - `p_value` (printed as `p`): the p-value of the test. With the Monte
   Carlo p-value it is (1 + the number of simulated datasets whose
@@ -119,7 +124,10 @@ those not tested. The columns:
 - `decision`: `split` when `p_value <= level`, `no split` otherwise, or
   why the part was not tested: `not tested: spatial fit` (the spatial
   parameters could not be estimated because the part has too few spots;
-  its spots get no domain), `not tested: too few spots` or
+  its spots get no domain), `not tested: simulated splits too small`
+  (the simulated datasets whose top split left fewer than
+  `min_child_size` spots on a side outnumbered the valid ones; its spots
+  get no domain), `not tested: too few spots` or
   `not tested: a side too small` (smaller than `min_node_size` or
   `min_child_size` of [`sigdots_control()`](sigdots_control.md);
   reported as a domain), `not tested: B_cap too small` (the level is so
@@ -168,7 +176,7 @@ fit
 #> 
 #> Use summary() for the tests.
 summary(fit)
-#> SigDoTS 0.2.5.8
+#> SigDoTS 0.2.5.10
 #> Data:     900 spots x 200 genes
 #> Start:    k-means on 15 principal components; 5 candidate domains
 #> Spatial:  Vecchia approximation (60 neighbours)

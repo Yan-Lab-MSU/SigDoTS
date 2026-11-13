@@ -60,7 +60,11 @@ sigdots_control(
   A whole number (8 by default). A split that would leave fewer spots
   than this on either side is not tested, and the part is reported as a
   domain. A simulated dataset whose top split leaves fewer spots on a
-  side stops the run with an error.
+  side is replaced by a new one, so that the test keeps its number of
+  simulated datasets ([`summary()`](https://rdrr.io/r/base/summary.html)
+  lists how many were replaced). If such simulated datasets outnumber
+  the valid ones, the part is not tested, its spots get no domain, and
+  [`sigdots()`](sigdots.md) warns.
 
 - B_cap:
 

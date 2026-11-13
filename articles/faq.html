@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SigDoTS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -145,6 +145,31 @@ so that each part of the tree is larger; or, if the untested part is
 small and you accept it as it is, treat its spots as one domain
 yourself. Do not interpret an untested part as “not significant”: it was
 not tested.</p>
+<p><strong>“At 1 part(s) of the tree, the simulated datasets whose top
+split left fewer than min_child_size = 8 spots on a side outnumbered the
+valid ones, so these parts were not tested and their spots have no
+domain: node 9 (120 spots, candidate domains 2,5; 31 simulated datasets
+replaced). See summary() and vignette(”faq”).”</strong> A split of the
+data is tested only when both of its sides have at least
+<code>min_child_size</code> spots, so SigDoTS asks the same of every
+simulated dataset. One whose top split leaves fewer spots on a side is
+replaced by a new one and is not counted; <code>summary(fit)</code>
+lists the tests where this happened, with the number replaced. It has
+been seen where the spots of a part lie in many small separate pieces
+and the simulated datasets are grouped with a method that uses each
+spot’s neighbourhood (BANKSY): the spots of a small isolated piece share
+most of their neighbours and tend to be grouped together even in
+simulated data without any domain, so the top split cuts off that piece.
+When the replaced simulated datasets outnumber the valid ones, SigDoTS
+does not decide the test from the ones that remain: it leaves the part
+untested, still tests the rest of the tree, marks the part
+<code>[!] NOT TESTED</code>, and gives its spots <code>NA</code> in
+<code>domains(fit)</code>.</p>
+<p>What to do: look at where the spots of that part lie
+(<code>plot(fit, type = "candidates")</code>). Fewer candidate domains
+(a smaller <code>K0</code>) usually give parts whose spots lie together.
+Do not interpret an untested part as “not significant”: it was not
+tested.</p>
 <p><strong>“At 1 test(s) the estimated spatial range ell is at the upper
 end of its allowed range (40): node(s) 8. Rerun with a wider range, for
 example control = sigdots_control(ell_range = c(0.3, 80)); see
